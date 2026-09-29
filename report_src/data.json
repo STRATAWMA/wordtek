@@ -1,0 +1,830 @@
+{
+ "info": {
+  "L": 60.0,
+  "H": 6.0,
+  "B": 11.53,
+  "p": 5.0,
+  "sw": 35.68490936443799,
+  "q": 6.75,
+  "im": 0.375
+ },
+ "members": [
+  {
+   "code": "BC-01",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 2121,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-02",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 5600,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-03",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 8222,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-04",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 10206,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-05",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 11661,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-06",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 12240,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-07",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 12241,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-08",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 11660,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-09",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 10206,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-10",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 8223,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-11",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 5599,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "BC-12",
+   "type": "Bottom Chord",
+   "L": 5.0,
+   "Pt": 2122,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-01",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 3976,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-02",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 7005,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-03",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 9245,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-04",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 11048,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-05",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 12058,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-06",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 12308,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-07",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 12059,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-08",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 11047,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-09",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 9245,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-10",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 7006,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "TC-11",
+   "type": "Top Chord",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 3976,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "EC-01",
+   "type": "End Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 5168,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-02",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 5168,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-03",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 4278,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-04",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 4278,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-05",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 3470,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-06",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 3470,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-07",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 2669,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-08",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 2669,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-09",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 1887,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-10",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 1887,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-11",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 499,
+   "Pc": 1178,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-12",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 1178,
+   "Pc": 499,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-13",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 1180,
+   "Pc": 498,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-14",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 498,
+   "Pc": 1180,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-15",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 1888,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-16",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 1888,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-17",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 2670,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-18",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 2670,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-19",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 3471,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-20",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 3471,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-21",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 4279,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-22",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 4279,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "DC-23",
+   "type": "Diagonal Chord",
+   "L": 6.5,
+   "Pt": 5169,
+   "Pc": 0,
+   "gov": "SCANIA"
+  },
+  {
+   "code": "EC-24",
+   "type": "End Chord",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 5169,
+   "gov": "SCANIA"
+  }
+ ],
+ "truss": [
+  {
+   "frame": "BC-Z1",
+   "type": "Bottom Chord",
+   "members": "BC-01, BC-02, BC-11, BC-12",
+   "L": 5.0,
+   "Pt": 5600,
+   "Pc": 0,
+   "sec": {
+    "name": "WB 500x250x22x22",
+    "A": 21032,
+    "Ix": 802.6,
+    "Iy": 57.7,
+    "rx": 195.3,
+    "ry": 52.4,
+    "Fy": 355.0,
+    "kg": 165.1,
+    "lf": 5.68,
+    "lw": 20.7
+   },
+   "KLr": 95.5,
+   "Fe": 217,
+   "phiPc": 3384,
+   "phiPt": 5913,
+   "ur": 0.947,
+   "lim_f": 13.29,
+   "lim_w": 35.4
+  },
+  {
+   "frame": "BC-Z2",
+   "type": "Bottom Chord",
+   "members": "BC-03, BC-04, BC-09, BC-10",
+   "L": 5.0,
+   "Pt": 10206,
+   "Pc": 0,
+   "sec": {
+    "name": "WB 500x400x22x36",
+    "A": 38216,
+    "Ix": 1697.0,
+    "Iy": 384.4,
+    "rx": 210.7,
+    "ry": 100.3,
+    "Fy": 355.0,
+    "kg": 300.0,
+    "lf": 5.56,
+    "lw": 19.5
+   },
+   "KLr": 49.9,
+   "Fe": 794,
+   "phiPc": 10127,
+   "phiPt": 10744,
+   "ur": 0.95,
+   "lim_f": 13.29,
+   "lim_w": 35.4
+  },
+  {
+   "frame": "BC-Z3",
+   "type": "Bottom Chord",
+   "members": "BC-05, BC-06, BC-07, BC-08",
+   "L": 5.0,
+   "Pt": 12241,
+   "Pc": 0,
+   "sec": {
+    "name": "WB 500x500x14x40",
+    "A": 45880,
+    "Ix": 2207.8,
+    "Iy": 833.4,
+    "rx": 219.4,
+    "ry": 134.8,
+    "Fy": 355.0,
+    "kg": 360.2,
+    "lf": 6.25,
+    "lw": 30.0
+   },
+   "KLr": 37.1,
+   "Fe": 1434,
+   "phiPc": 13216,
+   "phiPt": 12899,
+   "ur": 0.949,
+   "lim_f": 13.29,
+   "lim_w": 35.4
+  },
+  {
+   "frame": "TC-Z1",
+   "type": "Top Chord",
+   "members": "TC-01, TC-02, TC-10, TC-11",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 7006,
+   "sec": {
+    "name": "WB 500x500x16x19",
+    "A": 26392,
+    "Ix": 1231.0,
+    "Iy": 396.0,
+    "rx": 216.0,
+    "ry": 122.5,
+    "Fy": 355.0,
+    "kg": 207.2,
+    "lf": 13.16,
+    "lw": 28.9
+   },
+   "KLr": 40.8,
+   "Fe": 1185,
+   "phiPc": 7438,
+   "phiPt": 7420,
+   "ur": 0.942,
+   "lim_f": 13.29,
+   "lim_w": 35.4
+  },
+  {
+   "frame": "TC-Z2",
+   "type": "Top Chord",
+   "members": "TC-03, TC-04, TC-08, TC-09",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 11048,
+   "sec": {
+    "name": "WB 500x475x16x36",
+    "A": 41048,
+    "Ix": 1949.0,
+    "Iy": 643.2,
+    "rx": 217.9,
+    "ry": 125.2,
+    "Fy": 355.0,
+    "kg": 322.2,
+    "lf": 6.6,
+    "lw": 26.8
+   },
+   "KLr": 39.9,
+   "Fe": 1237,
+   "phiPc": 11631,
+   "phiPt": 11540,
+   "ur": 0.95,
+   "lim_f": 13.29,
+   "lim_w": 35.4
+  },
+  {
+   "frame": "TC-Z3",
+   "type": "Top Chord",
+   "members": "TC-05, TC-06, TC-07",
+   "L": 5.0,
+   "Pt": 0,
+   "Pc": 12308,
+   "sec": {
+    "name": "WB 500x500x12x40",
+    "A": 45040,
+    "Ix": 2195.4,
+    "Iy": 833.4,
+    "rx": 220.8,
+    "ry": 136.0,
+    "Fy": 355.0,
+    "kg": 353.6,
+    "lf": 6.25,
+    "lw": 35.0
+   },
+   "KLr": 36.8,
+   "Fe": 1461,
+   "phiPc": 12999,
+   "phiPt": 12662,
+   "ur": 0.947,
+   "lim_f": 13.29,
+   "lim_w": 35.4
+  },
+  {
+   "frame": "EC-E",
+   "type": "End Chord",
+   "members": "EC-01, EC-24",
+   "L": 6.5,
+   "Pt": 0,
+   "Pc": 5169,
+   "sec": {
+    "name": "WB 500x425x14x20",
+    "A": 23440,
+    "Ix": 1093.3,
+    "Iy": 256.0,
+    "rx": 216.0,
+    "ry": 104.5,
+    "Fy": 355.0,
+    "kg": 184.0,
+    "lf": 10.62,
+    "lw": 32.9
+   },
+   "KLr": 62.2,
+   "Fe": 510,
+   "phiPc": 5597,
+   "phiPt": 6590,
+   "ur": 0.923,
+   "lim_f": 13.29,
+   "lim_w": 35.4
+  },
+  {
+   "frame": "DC-Z1",
+   "type": "Diagonal Chord",
+   "members": "DC-02, DC-03, DC-04, DC-05, DC-06, DC-19, DC-20, DC-21, DC-22, DC-23",
+   "L": 6.5,
+   "Pt": 5169,
+   "Pc": 4279,
+   "sec": {
+    "name": "WB 500x400x16x16",
+    "A": 20288,
+    "Ix": 886.6,
+    "Iy": 170.8,
+    "rx": 209.0,
+    "ry": 91.8,
+    "Fy": 365.0,
+    "kg": 159.3,
+    "lf": 12.5,
+    "lw": 29.2
+   },
+   "KLr": 70.8,
+   "Fe": 393,
+   "phiPc": 4520,
+   "phiPt": 5704,
+   "ur": 0.947,
+   "lim_f": 13.11,
+   "lim_w": 34.9
+  },
+  {
+   "frame": "DC-Z2",
+   "type": "Diagonal Chord",
+   "members": "DC-07, DC-08, DC-09, DC-10, DC-15, DC-16, DC-17, DC-18",
+   "L": 6.5,
+   "Pt": 2670,
+   "Pc": 2670,
+   "sec": {
+    "name": "WB 500x325x14x16",
+    "A": 16952,
+    "Ix": 728.9,
+    "Iy": 91.6,
+    "rx": 207.4,
+    "ry": 73.5,
+    "Fy": 365.0,
+    "kg": 133.1,
+    "lf": 10.16,
+    "lw": 33.4
+   },
+   "KLr": 88.4,
+   "Fe": 253,
+   "phiPc": 3041,
+   "phiPt": 4766,
+   "ur": 0.878,
+   "lim_f": 13.11,
+   "lim_w": 34.9
+  },
+  {
+   "frame": "DC-Z3",
+   "type": "Diagonal Chord",
+   "members": "DC-11, DC-12, DC-13, DC-14",
+   "L": 6.5,
+   "Pt": 1180,
+   "Pc": 1180,
+   "sec": {
+    "name": "WB 500x275x14x16",
+    "A": 15352,
+    "Ix": 635.1,
+    "Iy": 55.6,
+    "rx": 203.4,
+    "ry": 60.2,
+    "Fy": 365.0,
+    "kg": 120.5,
+    "lf": 8.59,
+    "lw": 33.4
+   },
+   "KLr": 108.0,
+   "Fe": 169,
+   "phiPc": 2043,
+   "phiPt": 4316,
+   "ur": 0.577,
+   "lim_f": 13.11,
+   "lim_w": 34.9
+  }
+ ],
+ "floor": [
+  {
+   "frame": "ST-1",
+   "type": "Stringer",
+   "members": "7 lines x 12 panels @ 1.67 m",
+   "L": 5.0,
+   "Mu": 527,
+   "Vu": 482,
+   "sec": {
+    "name": "WB 550x225x9x14",
+    "A": 10998,
+    "Ix": 559.3,
+    "Iy": 26.6,
+    "rx": 225.5,
+    "ry": 49.2,
+    "Fy": 365.0,
+    "kg": 86.3,
+    "lf": 8.04,
+    "lw": 58.0
+   },
+   "phiMn": 589,
+   "phiVn": 976,
+   "ur": 0.895
+  },
+  {
+   "frame": "CG-1",
+   "type": "Cross Girder",
+   "members": "13 lines @ bottom nodes",
+   "L": 11.53,
+   "Mu": 3825,
+   "Vu": 1211,
+   "sec": {
+    "name": "WB 1350x350x10x22",
+    "A": 28460,
+    "Ix": 8646.7,
+    "Iy": 157.3,
+    "rx": 551.2,
+    "ry": 74.3,
+    "Fy": 355.0,
+    "kg": 223.4,
+    "lf": 7.95,
+    "lw": 130.6
+   },
+   "phiMn": 4039,
+   "phiVn": 1534,
+   "ur": 0.947
+  },
+  {
+   "frame": "BR-1",
+   "type": "Brace (top lateral strut / portal)",
+   "members": "11 struts at top nodes + 2 portals",
+   "L": 11.53,
+   "Pu": 246,
+   "sec": {
+    "name": "WB 250x325x8x14",
+    "A": 10876,
+    "Ix": 134.2,
+    "Iy": 80.1,
+    "rx": 111.1,
+    "ry": 85.8,
+    "Fy": 365.0,
+    "kg": 85.4,
+    "lf": 11.61,
+    "lw": 27.8
+   },
+   "KLr": 134.3,
+   "phiPc": 939,
+   "ur": 0.262
+  },
+  {
+   "frame": "DM-1",
+   "type": "Diagonal Member (lateral X-bracing)",
+   "members": "top & bottom lateral bracing",
+   "L": 12.57,
+   "Pu": 268,
+   "sec": {
+    "name": "WB 200x200x8x9",
+    "A": 5056,
+    "Ix": 36.9,
+    "Iy": 12.0,
+    "rx": 85.4,
+    "ry": 48.7,
+    "Fy": 365.0,
+    "kg": 39.7,
+    "lf": 11.11,
+    "lw": 22.8
+   },
+   "KLr": 128.9,
+   "phiPc": 474,
+   "ur": 0.566
+  }
+ ],
+ "girder": [
+  {
+   "frame": "GR-1",
+   "type": "Main Girder (composite, interior & exterior)",
+   "members": "G1..G6 @ 1.7 m",
+   "L": 30.6,
+   "Mu": 8032,
+   "Vu": 1488,
+   "sec": {
+    "name": "WB 1700x300/350x12x16/20",
+    "A": 31768,
+    "Ix": 12848.3,
+    "Iy": 107.7,
+    "rx": 636.0,
+    "ry": 58.2,
+    "Fy": 355.0,
+    "kg": 249.4,
+    "lf": 9.38,
+    "lw": 138.7
+   },
+   "ur": 0.946
+  },
+  {
+   "frame": "DF-1",
+   "type": "Diaphragm / Cross Beam",
+   "members": "7 lines x 5 bays (@~5.1 m)",
+   "L": 1.7,
+   "Mu": 150,
+   "Vu": 0,
+   "sec": {
+    "name": "WB 600x200x9x12",
+    "A": 9984,
+    "Ix": 558.3,
+    "Iy": 16.0,
+    "rx": 236.5,
+    "ry": 40.1,
+    "Fy": 365.0,
+    "kg": 78.4,
+    "lf": 8.33,
+    "lw": 64.0
+   },
+   "ur": 0.213
+  },
+  {
+   "frame": "LB-1",
+   "type": "Lateral Bracing (erection)",
+   "members": "bottom flange X",
+   "L": 5.38,
+   "Mu": 0,
+   "Vu": 0,
+   "sec": {
+    "name": "WB 200x200x8x12",
+    "A": 6208,
+    "Ix": 46.1,
+    "Iy": 16.0,
+    "rx": 86.2,
+    "ry": 50.8,
+    "Fy": 365.0,
+    "kg": 48.7,
+    "lf": 8.33,
+    "lw": 22.0
+   },
+   "ur": 0.3
+  }
+ ],
+ "ginfo": {
+  "L": 30.6,
+  "S": 1.7,
+  "q": 8.912,
+  "im": 0.4,
+  "DF": 0.482,
+  "Mu": 8031.91,
+  "Vu": 1487.753,
+  "M_D": 4797.675,
+  "M_sc": 4857.181,
+  "Mc": 3017.069
+ }
+}
