@@ -1,0 +1,18 @@
+Bridge,FrameCode,Element,Members,Section,d,bf_top,tw,tf_top,bf_bot,tf_bot,kg_per_m,UR
+Truss 60m,BC-Z1,Bottom Chord,"BC-01, BC-02, BC-11, BC-12",WB 500x250x22x22,500,250,22,22,250,22,165.1,0.95
+Truss 60m,BC-Z2,Bottom Chord,"BC-03, BC-04, BC-09, BC-10",WB 500x400x22x36,500,400,22,36,400,36,300.0,0.95
+Truss 60m,BC-Z3,Bottom Chord,"BC-05, BC-06, BC-07, BC-08",WB 500x500x14x40,500,500,14,40,500,40,360.2,0.95
+Truss 60m,TC-Z1,Top Chord,"TC-01, TC-02, TC-10, TC-11",WB 500x500x16x19,500,500,16,19,500,19,207.2,0.94
+Truss 60m,TC-Z2,Top Chord,"TC-03, TC-04, TC-08, TC-09",WB 500x475x16x36,500,475,16,36,475,36,322.2,0.95
+Truss 60m,TC-Z3,Top Chord,"TC-05, TC-06, TC-07",WB 500x500x12x40,500,500,12,40,500,40,353.6,0.95
+Truss 60m,EC-E,End Chord,"EC-01, EC-24",WB 500x425x14x20,500,425,14,20,425,20,184.0,0.92
+Truss 60m,DC-Z1,Diagonal Chord,"DC-02, DC-03, DC-04, DC-05, DC-06, DC-19, DC-20, DC-21, DC-22, DC-23",WB 500x400x16x16,500,400,16,16,400,16,159.3,0.95
+Truss 60m,DC-Z2,Diagonal Chord,"DC-07, DC-08, DC-09, DC-10, DC-15, DC-16, DC-17, DC-18",WB 500x325x14x16,500,325,14,16,325,16,133.1,0.88
+Truss 60m,DC-Z3,Diagonal Chord,"DC-11, DC-12, DC-13, DC-14",WB 500x275x14x16,500,275,14,16,275,16,120.5,0.58
+Truss 60m,ST-1,Stringer,7 lines x 12 panels @ 1.67 m,WB 550x225x9x14,550,225,9,14,225,14,86.3,0.9
+Truss 60m,CG-1,Cross Girder,13 lines @ bottom nodes,WB 1350x350x10x22,1350,350,10,22,350,22,223.4,0.95
+Truss 60m,BR-1,Brace (top lateral strut / portal),11 struts at top nodes + 2 portals,WB 250x325x8x14,250,325,8,14,325,14,85.4,0.26
+Truss 60m,DM-1,Diagonal Member (lateral X-bracing),top & bottom lateral bracing,WB 200x200x8x9,200,200,8,9,200,9,39.7,0.57
+Girder 30.6m,GR-1,"Main Girder (composite, interior & exterior)",G1..G6 @ 1.7 m,WB 1700x300/350x12x16/20,1700,300,12,16,350,20,249.4,0.95
+Girder 30.6m,DF-1,Diaphragm / Cross Beam,7 lines x 5 bays (@~5.1 m),WB 600x200x9x12,600,200,9,12,200,12,78.4,0.21
+Girder 30.6m,LB-1,Lateral Bracing (erection),bottom flange X,WB 200x200x8x12,200,200,8,12,200,12,48.7,0.3
