@@ -34,8 +34,9 @@ Satuan kN, m. Stringer tepi = ST‑1 & ST‑7.
 | **MA** aspal 50 mm | D | q = 1,10 kPa → 0,275 (tepi) / 1,21 (dalam) kN/m — total MA 10,00 kN/m |
 | **TD‑BTR** | L | q = 9,0(0,5 + 15/L) = **5,85 kPa**; 100 % pada 5,5 m + 50 % pada 0,5 m → b<sub>eff</sub> = 5,75 m → 0,731 / 6,435 kN/m — total 33,64 kN/m |
 | **TD‑BGT** | L | FBD = 0,30 (L ≥ 90 m) → p = 49 × 1,30 = **63,70 kN/m** → beban titik 7,96 / 70,07 kN pada buhul x = 46,6655 m — total 366,3 kN |
+| **TB1** gaya rem | L | max(25 % × 500 ; 5 % ×(500 + BTR·2,75·L)) = max(125 ; 105,4) = **125 kN/lajur**; 2 lajur × m=1,0 → **250 kN** (AASHTO BR = 162,5 kN, tidak menentukan) → 0,500 kN/m GX pada ST‑2…ST‑6 + kopel vertikal ±2,25 kN di 4 node tumpuan |
 | **TP** pejalan kaki | L | 5 kPa × 0,5 m = 2,50 kN/m pada ST‑1 & ST‑7 |
-| **EWS** angin struktur | W | P<sub>D</sub> = 2,4 kPa; A = 2 × 2,370 + 0,350 = 5,090 m²/m → **12,22 kN/m**; chord atas 2,844 + chord bawah 3,264 kN/m tiap rangka |
+| **EWS** angin struktur | W | P<sub>D</sub> = 2,4 kPa; A = 2 × 2,370 + 0,350 = 5,090 m²/m → **12,22 kN/m**; chord atas 3,047 + chord bawah 3,264 kN/m tiap rangka (chord atas diskala L/L<sub>tc</sub> karena panjangnya hanya 93,331 m, agar resultan tepat 1221,6 kN) |
 | **EWL** angin kendaraan | W | 1,46 kN/m @ 1,8 m → horizontal 0,730 kN/m tiap chord bawah + kopel vertikal ± 0,346 kN/m |
 | **EWV** angin vertikal | W | 0,96 × 7,6 = 7,296 kN/m ke atas; windward 5,472 / leeward 1,824 kN/m |
 | **EUN / EUN‑N** suhu | T | ± 15 °C seragam seluruh elemen (SNI 1725 Tabel 18: 15–40 °C) |
@@ -59,3 +60,25 @@ Berat permanen = plat 45,6 + topping 2,4 + aspal 6,6 + sandaran 1,0 + baja 31,89
 - Deskripsi load case lama di model masih mengacu jembatan 36 m (EWs 4,70 kN/m, PGA 0,0431 g) — sudah ditimpa oleh file ini.
 - Angin longitudinal (P<sub>B</sub> = 1,2 kPa) belum dibuat load case; nilainya tercantum di sheet `5-ANGIN` bila diperlukan.
 - `*SELFWEIGHT` tetap dipakai untuk baja — jangan menambahkan berat baja secara manual.
+
+## Verifikasi Excel vs midas
+Sheet `9-VERIFIKASI-MIDAS` memuat jumlah entri dan resultan tiap load case untuk dicocokkan dengan model tree midas.
+
+| Load case | Entri midas | Resultan |
+|---|---|---|
+| MS | Self Weight + 105 beam | 4559,9 kN (plat) + 3188,8 kN (baja, dihitung midas) |
+| MA | 105 beam | 999,98 kN |
+| TD-BTR | 105 beam | 3363,7 kN |
+| TD-BGT | 7 nodal | 366,3 kN |
+| TB1 | 75 beam + 4 nodal | 250,0 kN (GX) |
+| TP | 30 beam | 500,0 kN |
+| EWS | 58 beam | 1221,6 kN (GY) |
+| EWL | 60 beam | 146,0 kN (GY) + kopel |
+| EWV | 30 beam | 729,6 kN (+Z) |
+| EUN / EUN-N | 388 element temp | ±15 °C |
+| EQX / EQY | 163 beam | 7961,3 kN |
+
+57 titik pembanding Excel↔MCT sudah dicek otomatis: **0 selisih**.
+
+## TB2 / TB3 belum dibuat
+Model lama (jembatan 36 m) punya `TB2` (gaya rem CAT 777) dan `TB3` (XCMG XT400DT 8×4 GVW 65 t). Kendaraan khusus itu belum ditentukan untuk jembatan 100 m ini, jadi **tidak dibuat ulang**. Akibatnya kombinasi `KUAT II-TK`, `KUAT II-DT`, `LAYAN I-TK`, `LAYAN II-TK`, `LAYAN II-DT` masih mengacu load case yang kosong. Beri tahu bila kendaraan khusus tersebut tetap dipakai.

@@ -44,6 +44,14 @@ rows=[
  ("Berat baja termodel (hasil hitung)",P['Wsteel'],"kN","W_steel","Sum A*L*gam_s dari file MCT"),
  ("BEBAN HIDUP",None,None,None,None),
  ("Beban pejalan kaki",P['qped'],"kPa","q_ped","SNI 1725-2016 ps. 8.9"),
+ ("Berat truk desain SNI",P['Wtruk'],"kN","W_truk","SNI 1725-2016 ps. 8.4 (50+225+225)"),
+ ("Berat truk desain AASHTO HL-93",P['Wtruk_AA'],"kN","W_trukA","AASHTO LRFD 3.6.1.2.2 (35+145+145)"),
+ ("Beban lajur AASHTO",P['qLane_AA'],"kN/m","q_laneA","AASHTO LRFD 3.6.1.2.4 (0.64 klf)"),
+ ("Lebar lajur rencana",P['wlajur'],"m","w_lajur","SNI 1725-2016 ps. 8.2"),
+ ("Jumlah lajur rencana",P['nlajur'],"bh","n_lajur","SNI 1725-2016 Tabel 12 (5.5<=w<8.25)"),
+ ("Faktor kehadiran m - 1 lajur",P['m1'],"-","m_1","SNI 1725-2016 Tabel 14"),
+ ("Faktor kehadiran m - 2 lajur",P['m2'],"-","m_2","SNI 1725-2016 Tabel 14"),
+ ("Panjang chord atas",R['Ltc'],"m","L_tc","14 panel x 6.6665 m"),
  ("ANGIN",None,None,None,None),
  ("PB transversal rangka",P['PBt'],"kPa","PB_t","SNI 1725-2016 Tabel 27 / AASHTO 3.8.1.2.1"),
  ("PB longitudinal rangka",P['PBl'],"kPa","PB_l","SNI 1725-2016 Tabel 27"),
@@ -158,6 +166,41 @@ hdr(ws,21,["Beban pejalan kaki TP","q (kPa)","W_trot (m)","w TP (kN/m per sisi)"
 ws.cell(22,1,"SNI 1725-2016 ps. 8.9"); ws.cell(22,2,'=q_ped'); ws.cell(22,3,'=W_trot')
 ws.cell(22,4,"=B22*C22").fill=FO; ws.cell(22,4).number_format='0.000'; ws.cell(22,5,"stringer tepi ST-1 dan ST-7")
 
+# ================= 4b-GAYA-REM =================
+ws=wb.create_sheet("4b-GAYA-REM")
+title(ws,"4b. GAYA REM TB (SNI 1725-2016 ps. 8.7)","Diambil nilai terbesar dari 25% berat gandar truk desain atau 5% (truk desain + BTR). Bekerja arah memanjang, 1.8 m di atas permukaan lantai.")
+ws.column_dimensions['A'].width=64
+LB=[("SNI 1725-2016",None,None),
+ ("Berat truk desain",'=W_truk',"kN"),
+ ("(a) 25% x berat gandar truk desain",'=0.25*E5',"kN/lajur"),
+ ("(b) 5% x (truk desain + BTR x w_lajur x L)",'=0.05*(E5+\'4-TD-LAJUR-D\'!E5*w_lajur*L_span)',"kN/lajur"),
+ ("Menentukan per lajur = MAX(a;b)",'=MAX(E6,E7)',"kN/lajur"),
+ ("Jumlah lajur rencana",'=n_lajur',"bh"),
+ ("Opsi 1: 2 lajur x m2",'=n_lajur*E8*m_2',"kN"),
+ ("Opsi 2: 1 lajur x m1",'=1*E8*m_1',"kN"),
+ ("TB TOTAL = MAX(opsi1;opsi2)",'=MAX(E10,E11)',"kN"),
+ ("PEMBANDING AASHTO LRFD 3.6.4",None,None),
+ ("(a) 25% x berat gandar truk HL-93",'=0.25*W_trukA',"kN/lajur"),
+ ("(b) 5% x (truk HL-93 + beban lajur x L)",'=0.05*(W_trukA+q_laneA*L_span)',"kN/lajur"),
+ ("BR TOTAL AASHTO = MAX x n_lajur x m2",'=MAX(E14,E15)*n_lajur*m_2',"kN"),
+ ("Yang dipakai = MAX(SNI;AASHTO)",'=MAX(E12,E16)',"kN"),
+ ("PENYEBARAN KE MODEL",None,None),
+ ("Lebar 2 lajur rencana",'=n_lajur*w_lajur',"m"),
+ ("w per stringer = TB / L / lebar x s_str",'=E17/L_span/E19*s_str',"kN/m"),
+ ("Dipasang pada stringer ST-2 s/d ST-6 (5 jalur)",'=E20*5*L_span',"kN (cek = TB total)"),
+ ("Kopel vertikal M = TB x 1.8 m",'=E17*h_EWL',"kNm"),
+ ("dV tiap tumpuan tiap rangka = M / L / 2",'=E22/L_span/2',"kN"),
+]
+r=4
+for lb,fm,un in LB:
+    if fm is None:
+        c=ws.cell(r,1,lb); c.font=Font(bold=True,color="1F4E78"); c.fill=PatternFill("solid",fgColor="DDEBF7")
+        ws.merge_cells(start_row=r,start_column=1,end_row=r,end_column=6); r+=1; continue
+    ws.cell(r,1,lb); ws.cell(r,5,fm).fill=FO; ws.cell(r,5).number_format='0.000'; ws.cell(r,6,un); r+=1
+ws.cell(26,1,"Node tumpuan: x=0 -> node 1 & 48 (FZ = +dV, angkat) ; x=L -> node 16 & 56 (FZ = -dV, tekan)").font=Font(italic=True,size=9)
+ws.cell(27,1,"CATATAN: load case TB2 (CAT 777) dan TB3 (XCMG XT400DT) dari model lama 36 m TIDAK dibuat ulang - kendaraan khusus tsb belum ditentukan untuk jembatan ini.").font=Font(bold=True,color="C00000")
+ws.cell(28,1,"Kombinasi KUAT II-TK / KUAT II-DT / LAYAN I-TK / LAYAN II-TK / LAYAN II-DT mengacu TB2/TB3 - saat ini kosong.").font=Font(italic=True,size=9)
+
 # ================= 5-ANGIN =================
 ws=wb.create_sheet("5-ANGIN")
 title(ws,"5. BEBAN ANGIN (SNI 1725-2016 ps. 9.6 / AASHTO LRFD 3.8)","V = 90 km/h = 25 m/s = VB sehingga PD = PB. Kedua rangka diperhitungkan (tanpa reduksi shielding, AASHTO 3.8.1.2.1).")
@@ -167,9 +210,9 @@ L5=[("ANGIN PADA STRUKTUR - EWs",None,None),
  ("Tinggi ekspos sisi lantai",'=h_deck',"m"),
  ("Total area ekspos per m = 2 x rangka + lantai",'=2*E5+E6',"m2/m"),
  ("EWs total per m bentang = PB_t x A",'=PB_t*E7',"kN/m"),
- ("  -> chord ATAS tiap rangka = PB_t x A_truss / 2",'=PB_t*A_truss/2',"kN/m"),
+ ("  -> chord ATAS tiap rangka = PB_t x A_truss/2 x L/L_tc",'=PB_t*A_truss/2*L_span/L_tc',"kN/m"),
  ("  -> chord BAWAH tiap rangka = PB_t x A_truss/2 + PB_t x h_deck/2",'=PB_t*A_truss/2+PB_t*h_deck/2',"kN/m"),
- ("  cek jumlah = 2 x (chord atas + chord bawah)",'=2*(E9+E10)',"kN/m"),
+ ("  cek resultan = 2 x E9 x L_tc + 2 x E10 x L  (harus = E8 x L)",'=2*E9*L_tc+2*E10*L_span',"kN"),
  ("ANGIN PADA KENDARAAN - EWl",None,None),
  ("EWl (nilai kode, transversal, 1.8 m di atas lantai)",'=EWL_q',"kN/m"),
  ("  -> komponen horizontal tiap chord bawah = EWl / 2",'=EWL_q/2',"kN/m"),
@@ -224,10 +267,10 @@ L7=[("PARAMETER SPEKTRUM",None,None),
  ("GAYA GEMPA",None,None),
  ("EQ total (arah X maupun Y) = koef x W",'=E18*E26',"kN"),
  ("  berat dek per m (plat+trotoar+aspal+sandaran)",'=SUM(E20:E23)',"kN/m"),
- ("  gaya gempa dek per m",'=E18*E30',"kN/m"),
+ ("  gaya gempa dek per m",'=E18*E29',"kN/m"),
  ("  gaya gempa baja per m",'=E18*E24',"kN/m"),
- ("  porsi baja ke chord BAWAH 55% (tiap sisi)",'=E32*0.55/2',"kN/m"),
- ("  porsi baja ke chord ATAS 45% (tiap sisi, panjang 93.331 m)",'=E32*0.45/2*L_span/93.331',"kN/m"),
+ ("  porsi baja ke chord BAWAH 55% (tiap sisi)",'=E31*0.55/2',"kN/m"),
+ ("  porsi baja ke chord ATAS 45% (tiap sisi, panjang L_tc)",'=E31*0.45/2*L_span/L_tc',"kN/m"),
 ]
 r=4
 for lb,fm,un in L7:
@@ -239,11 +282,11 @@ hdr(ws,36,["Stringer","b plat (m)","EQ pada stringer (kN/m)"],[10,13,24])
 for i,y in enumerate(YS):
     rr=37+i
     ws.cell(rr,1,"ST-%d"%(i+1)); ws.cell(rr,2,"='1-TRIBUTARI'!D%d"%(5+i))
-    ws.cell(rr,3,"=$E$31*B%d/B_as"%rr).fill=FO; ws.cell(rr,3).number_format='0.000'
+    ws.cell(rr,3,"=$E$30*B%d/B_as"%rr).fill=FO; ws.cell(rr,3).number_format='0.000'
     for j in range(1,4): ws.cell(rr,j).border=B
 ws.cell(44,2,"TOTAL"); ws.cell(44,3,"=SUM(C37:C43)").font=Font(bold=True); ws.cell(44,3).number_format='0.000'
-ws.cell(46,1,"Cek: SUM(stringer)xL + 2 x E33 x L + 2 x E34 x 93.331 harus = EQ total (E28).")
-ws.cell(47,1,'=SUM(C37:C43)*L_span+2*E33*L_span+2*E34*93.331').number_format='0.0'
+ws.cell(46,1,"Cek: SUM(stringer)xL + 2 x E32 x L + 2 x E33 x L_tc harus = EQ total (E28).")
+ws.cell(47,1,'=SUM(C37:C43)*L_span+2*E32*L_span+2*E33*L_tc').number_format='0.0'
 ws.cell(49,1,"CATATAN PENTING: dengan R=1 (desain elastis sambungan & perletakan, SNI 2833 ps.5.9) koefisien 0.91 sangat besar.").font=Font(bold=True,color="C00000")
 ws.cell(50,1,"Untuk desain bangunan bawah dapat dipakai R=3 (pilar tunggal) - cukup ubah sel R_eq di sheet 0-INPUT, seluruh hasil ikut berubah.").font=Font(italic=True,size=9)
 ws.cell(51,1,"Disarankan tetap melakukan analisis dinamik (eigenvalue + spektrum respons) di midas untuk mendapat T aktual dan Csm yang benar.").font=Font(italic=True,size=9)
@@ -259,6 +302,9 @@ for i,y in enumerate(YS): add("MS","D","Stringer ST-%d (y=%.1f m)"%(i+1,float(y)
 for i,y in enumerate(YS): add("MA","D","Stringer ST-%d"%(i+1),"Trotoar+sandaran+aspal","='3-MA-MATI-TAMBAHAN'!G%d"%(9+i),"kN/m","GZ","3")
 for i,y in enumerate(YS): add("TD-BTR","L","Stringer ST-%d"%(i+1),"BTR 5.85 kPa","='4-TD-LAJUR-D'!C%d"%(12+i),"kN/m","GZ","4")
 for i,y in enumerate(YS): add("TD-BGT","L","Node %s (x=46.6655 m)"%R['NBGT'][y],"BGT 63.7 kN/m","='4-TD-LAJUR-D'!D%d"%(12+i),"kN","FZ","4")
+add("TB1","L","Stringer ST-2 s/d ST-6","Gaya rem 250 kN","='4b-GAYA-REM'!E20","kN/m","GX","4b")
+add("TB1","L","Node 1 dan 48 (x=0)","Kopel vertikal rem","='4b-GAYA-REM'!E23","kN","FZ+","4b")
+add("TB1","L","Node 16 dan 56 (x=L)","Kopel vertikal rem","=-'4b-GAYA-REM'!E23","kN","FZ-","4b")
 add("TP","L","Stringer ST-1 dan ST-7","Pejalan kaki 5 kPa","='4-TD-LAJUR-D'!D22","kN/m","GZ","4")
 add("EWS","W","Chord atas (2 sisi)","Angin struktur","='5-ANGIN'!E9","kN/m","GY","5")
 add("EWS","W","Chord bawah (2 sisi)","Angin struktur","='5-ANGIN'!E10","kN/m","GY","5")
@@ -270,11 +316,38 @@ add("EWV","W","Chord bawah y=7.6 (leeward)","Angin vertikal ke atas","='5-ANGIN'
 add("EUN","T","Seluruh elemen","Suhu seragam naik","='6-SUHU'!E9","C","-","6")
 add("EUN-N","T","Seluruh elemen","Suhu seragam turun","=-'6-SUHU'!E9","C","-","6")
 for i,y in enumerate(YS): add("EQX / EQY","E","Stringer ST-%d"%(i+1),"Gempa statik ekuivalen","='7-GEMPA'!C%d"%(37+i),"kN/m","GX/GY","7")
-add("EQX / EQY","E","Chord bawah (2 sisi)","Gempa - massa baja","='7-GEMPA'!E33","kN/m","GX/GY","7")
-add("EQX / EQY","E","Chord atas (2 sisi)","Gempa - massa baja","='7-GEMPA'!E34","kN/m","GX/GY","7")
+add("EQX / EQY","E","Chord bawah (2 sisi)","Gempa - massa baja","='7-GEMPA'!E32","kN/m","GX/GY","7")
+add("EQX / EQY","E","Chord atas (2 sisi)","Gempa - massa baja","='7-GEMPA'!E33","kN/m","GX/GY","7")
 for i,v in enumerate(rw):
     r=5+i
     for j,x in enumerate(v,1): c=ws.cell(r,j,x); c.border=B
     ws.cell(r,5).number_format='0.000'; ws.cell(r,5).fill=FO
+
+# ================= 9-VERIFIKASI =================
+ws=wb.create_sheet("9-VERIFIKASI-MIDAS")
+title(ws,"9. VERIFIKASI: EXCEL vs MIDAS","Bandingkan kolom 'Jumlah entri' dengan angka pada model tree midas (Load > Static Loads). Kolom resultan untuk cek Reaction/Self weight.")
+hdr(ws,4,["Load case","Jenis entri midas","Jumlah entri","Resultan (Excel)","Satuan","Arah","Catatan"],[12,26,13,17,9,8,44])
+V=[("MS","Self Weight + Element Beam Loads",105,'=SUM(\'2-MS-BERAT-SENDIRI\'!D7:D13)*L_span',"kN","-Z","7 stringer x 15 panel = 105 ; berat baja dihitung midas"),
+   ("MA","Element Beam Loads",105,"='3-MA-MATI-TAMBAHAN'!G16*L_span","kN","-Z","trotoar + sandaran + aspal"),
+   ("TD-BTR","Element Beam Loads",105,"='4-TD-LAJUR-D'!C19*L_span","kN","-Z","BTR 5.85 kPa x b_eff 5.75 m"),
+   ("TD-BGT","Nodal Loads",7,"='4-TD-LAJUR-D'!D19","kN","-Z","1 node per stringer di buhul x=46.6655 m"),
+   ("TB1","Element Beam Loads",75,"='4b-GAYA-REM'!E20*5*L_span","kN","+X","5 stringer (ST-2..ST-6) x 15 panel = 75"),
+   ("TB1","Nodal Loads",4,0,"kN","Z","kopel vertikal, resultan nol (2 naik + 2 turun)"),
+   ("TP","Element Beam Loads",30,"='4-TD-LAJUR-D'!D22*2*L_span","kN","-Z","2 stringer tepi x 15 panel"),
+   ("EWS","Element Beam Loads",58,"=2*'5-ANGIN'!E9*L_tc+2*'5-ANGIN'!E10*L_span","kN","+Y","chord atas 2x14=28 + chord bawah 2x15=30"),
+   ("EWL","Element Beam Loads",60,"=2*'5-ANGIN'!E14*L_span","kN","+Y","30 horizontal + 30 kopel vertikal (resultan vert = 0)"),
+   ("EWV","Element Beam Loads",30,"=('5-ANGIN'!E18+'5-ANGIN'!E19)*L_span","kN","+Z","chord bawah 2 x 15"),
+   ("EUN","Element Temperatures",388,"='6-SUHU'!E9","C","-","seluruh elemen"),
+   ("EUN-N","Element Temperatures",388,"=-'6-SUHU'!E9","C","-","seluruh elemen"),
+   ("EQX","Element Beam Loads",163,"='7-GEMPA'!E28","kN","+X","105 stringer + 30 chord bawah + 28 chord atas"),
+   ("EQY","Element Beam Loads",163,"='7-GEMPA'!E28","kN","+Y","105 stringer + 30 chord bawah + 28 chord atas")]
+for i,v in enumerate(V):
+    r=5+i
+    for j,x in enumerate(v,1): c=ws.cell(r,j,x); c.border=B
+    ws.cell(r,3).fill=FI; ws.cell(r,4).fill=FO; ws.cell(r,4).number_format='0.00'
+ws.cell(21,1,"Berat baja termodel (dihitung midas via *SELFWEIGHT) = %.1f kN. Total reaksi vertikal MS seharusnya = %.1f + %.1f = %.1f kN."%(P['Wsteel'],P['Wsteel'],45.6*P['L'],P['Wsteel']+45.6*P['L'])).font=Font(bold=True)
+ws.cell(23,1,"Elemen duplikat yang DIKECUALIKAN dari pembebanan: 7, 92, 185, 201, 217, 233, 249, 265, 281, 299, 330.").font=Font(color="C00000")
+ws.cell(24,1,"Elemen tsb tetap menggandakan berat sendiri pada panelnya - sebaiknya dihapus dari model.").font=Font(italic=True,size=9)
+
 wb.save("Pembebanan_Jembatan_Rangka_100m.xlsx")
 print("OK rows:",len(rw))

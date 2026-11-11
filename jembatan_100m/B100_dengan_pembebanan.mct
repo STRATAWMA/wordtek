@@ -1382,6 +1382,7 @@
    MA     , D, Beban mati tambahan - topping trotoar 100 mm + sandaran + aspal 50 mm
    TD-BTR , L, Beban lajur D - BTR q = 5.85 kPa (SNI 1725 ps.8.3.1 - L=100 m)
    TD-BGT , L, Beban lajur D - BGT p = 49 x (1+FBD 0.30) = 63.7 kN/m
+   TB1    , L, Gaya rem - truk desain SNI 500 kN - TB = 250.0 kN (SNI 1725 ps.8.7)
    TP     , L, Beban pejalan kaki 5 kPa pada trotoar (SNI 1725 ps.8.9)
    EWS    , W, Angin pada struktur PD = 2.4 kPa (SNI 1725 ps.9.6.1.1)
    EWL    , W, Angin pada kendaraan EWl = 1.46 kN/m @1.8 m (SNI 1725 ps.9.6.1.2)
@@ -1480,6 +1481,38 @@
 ; total = 366.28 kN
 
 ;--------------------------------------------------------------------------
+; TB1 - GAYA REM (SNI 1725-2016 ps. 8.7)
+;--------------------------------------------------------------------------
+; Diambil TERBESAR dari:
+;   (a) 25% x berat gandar truk desain = 0.25 x 500      = 125.00 kN / lajur
+;   (b) 5% x (truk desain + BTR 1 lajur)                 = 105.44 kN / lajur
+;   -> menentukan = 125.00 kN / lajur
+; Lajur rencana: lebar 6.0 m -> 2 lajur (SNI 1725 Tabel 12)
+; Faktor kehadiran m: 2 lajur m=1.0 ; 1 lajur m=1.2 (SNI 1725 Tabel 14)
+;   2 x 125.00 x 1.0 = 250.00 kN   |   1 x 125.00 x 1.2 = 150.00 kN
+; TB TOTAL = 250.00 kN  (arah memanjang +GX, 1.8 m di atas permukaan lantai)
+; Pembanding AASHTO LRFD 3.6.4 (truk HL-93) = 162.50 kN -> SNI menentukan
+; Disebar pada 2 lajur rencana = 5.50 m -> stringer ST-2..ST-6
+; w = 250.00 / 99.9975 / 5.50 x 1.10 = 0.5000 kN/m tiap stringer
+*USE-STLD, TB1
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+   259to264 266to274, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 0.5000, 1, 0.5000, 0, 0, 0, 0, 
+   243to248 250to258, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 0.5000, 1, 0.5000, 0, 0, 0, 0, 
+   179to184 186to194, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 0.5000, 1, 0.5000, 0, 0, 0, 0, 
+   195to200 202to210, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 0.5000, 1, 0.5000, 0, 0, 0, 0, 
+   211to216 218to226, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 0.5000, 1, 0.5000, 0, 0, 0, 0, 
+
+; Kopel vertikal dari lengan 1.8 m: M = 250.0 x 1.8 = 450.0 kNm
+; dV = M / L / 2 rangka = 2.250 kN (angkat di x=0, tekan di x=L)
+*CONLOAD
+; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP
+   1, 0, 0, 2.2501, 0, 0, 0, 
+   48, 0, 0, 2.2501, 0, 0, 0, 
+   16, 0, 0, -2.2501, 0, 0, 0, 
+   56, 0, 0, -2.2501, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
 ; TP - BEBAN PEJALAN KAKI 5 kPa x 0.5 m = 2.50 kN/m tiap trotoar
 ;--------------------------------------------------------------------------
 *USE-STLD, TP
@@ -1496,8 +1529,8 @@
 *USE-STLD, EWS
 *BEAMLOAD
 ; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
-; chord ATAS tiap rangka = 2.844 kN/m (+GY)
-   72to85 132to145, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 2.8440, 1, 2.8440, 0, 0, 0, 0, 
+; chord ATAS tiap rangka = 3.047 kN/m (+GY)
+   72to85 132to145, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 3.0471, 1, 3.0471, 0, 0, 0, 0, 
 ; chord BAWAH tiap rangka = 3.264 kN/m (+GY)
    1to6 8to16 86to91 93to101, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 3.2640, 1, 3.2640, 0, 0, 0, 0, 
 

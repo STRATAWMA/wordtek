@@ -32,6 +32,7 @@ for n,t,d in [("MS","D","Berat sendiri - baja (selfweight) + plat lantai beton 2
  ("MA","D","Beban mati tambahan - topping trotoar 100 mm + sandaran + aspal 50 mm"),
  ("TD-BTR","L","Beban lajur D - BTR q = 5.85 kPa (SNI 1725 ps.8.3.1 - L=100 m)"),
  ("TD-BGT","L","Beban lajur D - BGT p = 49 x (1+FBD 0.30) = 63.7 kN/m"),
+ ("TB1","L","Gaya rem - truk desain SNI 500 kN - TB = %.1f kN (SNI 1725 ps.8.7)"%R['TB_tot']),
  ("TP","L","Beban pejalan kaki 5 kPa pada trotoar (SNI 1725 ps.8.9)"),
  ("EWS","W","Angin pada struktur PD = 2.4 kPa (SNI 1725 ps.9.6.1.1)"),
  ("EWL","W","Angin pada kendaraan EWl = 1.46 kN/m @1.8 m (SNI 1725 ps.9.6.1.2)"),
@@ -91,6 +92,31 @@ A("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP")
 for i,y in enumerate(YS):
     A("   %s, 0, 0, %.4f, 0, 0, 0, "%(NB[y],-R['BGT'][y]))
 A("; total = %.2f kN"%sum(R['BGT'].values()))
+
+# ---- TB1 ----
+hb("TB1 - GAYA REM (SNI 1725-2016 ps. 8.7)")
+A("; Diambil TERBESAR dari:")
+A(";   (a) 25%% x berat gandar truk desain = 0.25 x 500      = %.2f kN / lajur"%R['tb_a'])
+A(";   (b) 5%% x (truk desain + BTR 1 lajur)                 = %.2f kN / lajur"%R['tb_b'])
+A(";   -> menentukan = %.2f kN / lajur"%R['tb_lane'])
+A("; Lajur rencana: lebar 6.0 m -> 2 lajur (SNI 1725 Tabel 12)")
+A("; Faktor kehadiran m: 2 lajur m=1.0 ; 1 lajur m=1.2 (SNI 1725 Tabel 14)")
+A(";   2 x %.2f x 1.0 = %.2f kN   |   1 x %.2f x 1.2 = %.2f kN"%(R['tb_lane'],2*R['tb_lane'],R['tb_lane'],1.2*R['tb_lane']))
+A("; TB TOTAL = %.2f kN  (arah memanjang +GX, 1.8 m di atas permukaan lantai)"%R['TB_tot'])
+A("; Pembanding AASHTO LRFD 3.6.4 (truk HL-93) = %.2f kN -> SNI menentukan"%R['TB_AA'])
+A("; Disebar pada 2 lajur rencana = 5.50 m -> stringer ST-2..ST-6")
+A("; w = %.2f / %.4f / %.2f x %.2f = %.4f kN/m tiap stringer"%(R['TB_tot'],P['L'],R['Wbrake'],P['s'],R['TB_str']))
+A("*USE-STLD, TB1")
+A("*BEAMLOAD")
+A("; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP")
+for y in R['YS_TB']: A(bl(SR[y],R['TB_str'],"GX",+1))
+A("")
+A("; Kopel vertikal dari lengan 1.8 m: M = %.1f x 1.8 = %.1f kNm"%(R['TB_tot'],R['TB_M']))
+A("; dV = M / L / 2 rangka = %.3f kN (angkat di x=0, tekan di x=L)"%R['TB_V'])
+A("*CONLOAD")
+A("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP")
+for n in R['NSUP']['x0']: A("   %d, 0, 0, %.4f, 0, 0, 0, "%(n, R['TB_V']))
+for n in R['NSUP']['xL']: A("   %d, 0, 0, %.4f, 0, 0, 0, "%(n,-R['TB_V']))
 
 # ---- TP ----
 hb("TP - BEBAN PEJALAN KAKI 5 kPa x 0.5 m = 2.50 kN/m tiap trotoar")

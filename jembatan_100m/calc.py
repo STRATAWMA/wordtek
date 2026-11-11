@@ -59,7 +59,8 @@ TP   ={y:(P['qped']*Wt if y in (500,7100) else 0.0) for y in YS}
 # ---------- ANGIN ----------
 Aexp = 2*P['Atruss']+P['hdeck']                 # m2 per m bentang
 EWS_tot=P['PBt']*Aexp                           # kN/m
-EWS_tc = P['PBt']*P['Atruss']/2                 # per rangka, chord atas
+Ltc=93.331
+EWS_tc = P['PBt']*P['Atruss']/2*L/Ltc        # per rangka, chord atas (dikoreksi L/Ltc)
 EWS_bc = P['PBt']*P['Atruss']/2 + P['PBt']*P['hdeck']/2
 EWL_h  = P['EWLq']/2                            # per chord bawah
 EWL_v  = P['EWLq']*P['hEWL']/P['Bas']           # +/- kN/m
@@ -79,10 +80,36 @@ EQ_tot=coef*Wperm
 w_deck_m=w_slab_m+w_trot_m+w_asp_m+w_rail_m
 EQ_str={y:coef*(w_deck_m*b_slab[y]/P['Bas']) for y in YS}
 EQ_bc = coef*w_steel_m*0.55/2
-EQ_tc = coef*w_steel_m*0.45/2*(L/93.331)        # chord atas hanya 93.331 m
-chk=sum(EQ_str.values())*L+2*EQ_bc*L+2*EQ_tc*93.331
+EQ_tc = coef*w_steel_m*0.45/2*(L/Ltc)           # chord atas hanya 93.331 m
+chk=sum(EQ_str.values())*L+2*EQ_bc*L+2*EQ_tc*Ltc
 
-R=dict(P=P,b_slab=b_slab,b_road=b_road,b_btr=b_btr,q_slab=q_slab,q_trot=q_trot,q_asp=q_asp,
+
+# ---------- GAYA REM TB (SNI 1725-2016 ps.8.7) ----------
+P['Wtruk']=500.0        # truk desain SNI 1725 ps.8.4 (50+225+225 kN)
+P['Wtruk_AA']=325.0     # truk desain AASHTO HL-93 (35+145+145 kN)
+P['qLane_AA']=9.3       # beban lajur AASHTO (kN/m)
+P['wlajur']=2.75        # lebar lajur rencana
+P['nlajur']=2           # SNI 1725 Tabel 12: 5.5 <= w < 8.25 -> 2 lajur
+P['m2']=1.0; P['m1']=1.2  # faktor kehadiran banyak lajur, SNI Tabel 14
+tb_a = 0.25*P['Wtruk']
+tb_b = 0.05*(P['Wtruk']+qBTR*P['wlajur']*L)
+tb_lane = max(tb_a,tb_b)
+TB_tot = max(P['nlajur']*tb_lane*P['m2'], 1*tb_lane*P['m1'])
+# pembanding AASHTO LRFD 3.6.4
+tbA_a = 0.25*P['Wtruk_AA']
+tbA_b = 0.05*(P['Wtruk_AA']+P['qLane_AA']*L)
+TB_AA = max(P['nlajur']*max(tbA_a,tbA_b)*P['m2'], 1*max(tbA_a,tbA_b)*P['m1'])
+# disebar pada 2 lajur rencana = 5.5 m -> stringer ST-2..ST-6 (1.1 m each)
+Wbrake = P['nlajur']*P['wlajur']
+YS_TB  = ['1600','2700','3800','4900','6000']
+TB_str = TB_tot/L*s/Wbrake
+# kopel vertikal dari lengan 1.8 m di atas lantai
+TB_M  = TB_tot*P['hEWL']
+TB_V  = TB_M/L/2        # per rangka, di tiap tumpuan
+NSUP  = dict(x0=[1,48], xL=[16,56])
+
+R=dict(P=P,Ltc=Ltc,tb_a=tb_a,tb_b=tb_b,tb_lane=tb_lane,TB_tot=TB_tot,TB_AA=TB_AA,
+  tbA_a=tbA_a,tbA_b=tbA_b,Wbrake=Wbrake,YS_TB=YS_TB,TB_str=TB_str,TB_M=TB_M,TB_V=TB_V,NSUP=NSUP,b_slab=b_slab,b_road=b_road,b_btr=b_btr,q_slab=q_slab,q_trot=q_trot,q_asp=q_asp,
   qBTR=qBTR,FBD=FBD,qBGT=qBGT,MS=MS,MAtr=MAtr,MAasp=MAasp,MA=MA,BTR=BTR,BGT=BGT,TP=TP,
   Aexp=Aexp,EWS_tot=EWS_tot,EWS_tc=EWS_tc,EWS_bc=EWS_bc,EWL_h=EWL_h,EWL_v=EWL_v,
   EWV_tot=EWV_tot,EWV_w=EWV_w,EWV_l=EWV_l,As=As,SDS=SDS,SD1=SD1,Ts=Ts,Csm=Csm,coef=coef,
