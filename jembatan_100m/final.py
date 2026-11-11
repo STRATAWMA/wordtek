@@ -180,9 +180,23 @@ A("; LINELANE memuat lebar lajur dalam mm, VEHICLE memuat gandar dalam tonf,")
 A("; DGN-MATL memuat Fy dalam tonf/mm2. Bila blok-blok ini terbaca di satuan")
 A("; KN,M, Fy menjadi 0.0362 kN/m2 dan SELURUH kapasitas batang jadi nol")
 A("; (pPn 0.0008 kN) sehingga semua batang NG / UPLT.")
-for _s in ('MVLDCODE','LINELANE','VEHICLE','MVLDCASE','DGN-MATL'):
+for _s in ('MVLDCODE','LINELANE','VEHICLE','MVLDCASE'):
     _g=grab(_s)
     if _g: A("*"+_s); [A(_l) for _l in _g]; A("")
+# --- DGN-MATL: SM490YB dengan band tebal sesuai pemaparan perencana ---
+#     fy = 365 MPa untuk t <= 16 mm ; fy = 355 MPa untuk t > 16 mm ; fu = 490 MPa
+_K=9.80665e3                       # MPa -> tonf/mm2
+_FU=490.0/_K; _F1=365.0/_K; _F2=355.0/_K
+_tail=("2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,"
+       "0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,"
+       "0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,")
+A("*DGN-MATL")
+A("; iMAT, TYPE, MNAME, 2, ELAST, POISN, FU, FY1..FY6, AFT, AFT2, AFT3, FY, AFV, AFV2, AFV3")
+A("; SM490YB : fy 365 MPa (t<=16 mm), fy 355 MPa (t>16 mm), fu 490 MPa")
+A("    1, STEEL, SM490YB           , 2, 2.0904e+001,   0.3, %.10f, %.10f, %.10f, %.10f, %.10f, %.10f, %.10f, 16, 40, 100, %.10f, 0, 0, 0, 0, %s"
+  %(_FU,_F1,_F2,_F2,_F2,_F2,_F2,_F2,_tail))
+A("    2, STEEL, SS400             , 2, 2.0904e+001,   0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, %s"%_tail)
+A("")
 A("; ---- mulai di sini satuan pindah ke KN, M khusus untuk DATA BEBAN ----")
 A("@@@SPLIT@@@")
 A("*UNIT")
@@ -191,8 +205,8 @@ A("   KN, M, BTU, C")
 hdr("LOAD CASE")
 A("*STLDCASE")
 A("; LCNAME, LCTYPE, DESC")
-for n,t,d in [("MS","D","Berat sendiri baja + plat lantai beton 250 mm"),
- ("MA","D","Mati tambahan - topping trotoar 100 mm + sandaran + aspal 50 mm"),
+for n,t,d in [("MS","D","Berat sendiri baja + plat lantai 262 mm + trotoar 300 mm"),
+ ("MA","D","Mati tambahan - sandaran + aspal 50 mm (tebal terkendali)"),
  ("TD-BTR","L","Lajur D - BTR 5.85 kPa (SNI 1725 ps.8.3.1)"),
  ("TD-BGT","L","Lajur D - BGT 49 x 1.30 = 63.7 kN/m"),
  ("TB1","L","Gaya rem 250 kN di level lantai (SNI 1725 ps.8.7)"),
@@ -286,13 +300,13 @@ for lc,dr in (('EQX','GX'),('EQY','GY')):
 hdr("KOMBINASI PEMBEBANAN (SNI 1725-2016 Tabel 1) - TB2/TB3 dihapus")
 A("*LOADCOMB")
 A("; NAME=NAME, KIND, ACTIVE, bES, iTYPE, DESC, iSERV-TYPE, nLCOMTYPE")
-CB=[("KUAT I","STRENGTH",[("MS",1.1),("MA",2.0),("TD-BTR",1.8),("TD-BGT",1.8),("TP",1.8),("TB1",1.8),("EUN",0.5)]),
- ("KUAT III","STRENGTH",[("MS",1.1),("MA",2.0),("EWS",1.4),("EWV",1.4),("EUN",0.5)]),
+CB=[("KUAT I","STRENGTH",[("MS",1.1),("MA",1.4),("TD-BTR",1.8),("TD-BGT",1.8),("TP",1.8),("TB1",1.8),("EUN",0.5)]),
+ ("KUAT III","STRENGTH",[("MS",1.1),("MA",1.4),("EWS",1.4),("EWV",1.4),("EUN",0.5)]),
  ("KUAT III-MIN","STRENGTH",[("MS",0.9),("MA",0.7),("EWS",1.4),("EWV",1.4)]),
- ("KUAT IV","STRENGTH",[("MS",1.1),("MA",2.0),("EUN",0.5)]),
- ("KUAT V","STRENGTH",[("MS",1.1),("MA",2.0),("EWS",0.4),("EWL",1.0),("EUN",0.5)]),
- ("EKSTREM I-EQX","STRENGTH",[("MS",1.1),("MA",2.0),("EQX",1.0),("EQY",0.3)]),
- ("EKSTREM I-EQY","STRENGTH",[("MS",1.1),("MA",2.0),("EQX",0.3),("EQY",1.0)]),
+ ("KUAT IV","STRENGTH",[("MS",1.1),("MA",1.4),("EUN",0.5)]),
+ ("KUAT V","STRENGTH",[("MS",1.1),("MA",1.4),("EWS",0.4),("EWL",1.0),("EUN",0.5)]),
+ ("EKSTREM I-EQX","STRENGTH",[("MS",1.1),("MA",1.4),("EQX",1.0),("EQY",0.3)]),
+ ("EKSTREM I-EQY","STRENGTH",[("MS",1.1),("MA",1.4),("EQX",0.3),("EQY",1.0)]),
  ("LAYAN I","SERVICE",[("MS",1.0),("MA",1.0),("TD-BTR",1.0),("TD-BGT",1.0),("TP",1.0),("TB1",1.0),("EWS",0.3),("EWL",1.0),("EUN",1.0)]),
  ("LAYAN II","SERVICE",[("MS",1.0),("MA",1.0),("TD-BTR",1.3),("TD-BGT",1.3),("TB1",1.3),("EUN",1.0)]),
  ("LAYAN IV","SERVICE",[("MS",1.0),("MA",1.0),("EWS",0.7),("EWV",0.7),("EUN",1.0)]),

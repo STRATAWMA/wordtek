@@ -1485,22 +1485,10 @@
 
 
 *DGN-MATL
-; iMAT, TYPE, MNAME, [DATA1]                                    ; STEEL
-; iMAT, TYPE, MNAME, [DATA2], [R-DATA], FCI, bSERV, SHORT, LONG ; CONC
-; iMAT, TYPE, MNAME, [DATA3], [DATA2], [R-DATA]                 ; SRC
-; iMAT, TYPE, MNAME, [DATA5]                                    ; STEEL(None) & KSCE-ASD05
-; [DATA1] : 1, DB, CODE, NAME or 2, ELAST, POISN, FU, FY1, FY2, FY3, FY4
-;           FY5, FY6, AFT, AFT2, AFT3, FY, AFV, AFV2, AFV3
-; [DATA2] : 1, DB, CODE, NAME or 2, FC, CHK, LAMBDA
-; [DATA3] : 1, DB, CODE, NAME or 2, ELAST, FU, FY1, FY2, FY3, FY4
-;              FY5, FY6, AFT, AFT2, AFT3, FY, AFV, AFV2, AFV3
-; [DATA4] : 1, DB, CODE, NAME or 2, FC
-; [DATA5] : 3, ELAST, POISN, AL1, AL2, AL3, AL4, AL5, AL6, AL7, AL8, AL9, AL10
-;              MIN1, MIN2, MIN3
-; [R-DATA]: RBCODE, RBMAIN, RBSUB, FY(R), FYS
-    1, STEEL, SM490YB           , 2, 2.0904e+001,   0.3, 0.0499660944359185, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0, 0, 0, 0.0361999255607165, 0, 0, 0, 0, 2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,
+; iMAT, TYPE, MNAME, 2, ELAST, POISN, FU, FY1..FY6, AFT, AFT2, AFT3, FY, AFV, AFV2, AFV3
+; SM490YB : fy 365 MPa (t<=16 mm), fy 355 MPa (t>16 mm), fu 490 MPa
+    1, STEEL, SM490YB           , 2, 2.0904e+001,   0.3, 0.0499660944, 0.0372196418, 0.0361999256, 0.0361999256, 0.0361999256, 0.0361999256, 0.0361999256, 16, 40, 100, 0.0361999256, 0, 0, 0, 0, 2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,
     2, STEEL, SS400             , 2, 2.0904e+001,   0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,
-
 
 ; ---- mulai di sini satuan pindah ke KN, M khusus untuk DATA BEBAN ----
 

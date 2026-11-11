@@ -26,7 +26,7 @@ for y in YS:
         if abs(yy-y)<1 and abs(x-XBGT)<1 and z<3000: NBGT[y]=n
 # ---------- PARAMETER ----------
 P=dict(L=99.9975,npan=15,a=6.6665,Bas=7.6,Wroad=6.0,Wtrot=0.5,nstr=7,s=1.1,
-       tslab=0.25,ttrot=0.35,tasp=0.05,gc=25.0,gasp=22.0,gs=78.5,
+       tslab=0.262,ttrot=0.30,tasp=0.05,gc=25.0,gasp=22.0,gs=78.5,
        wrail=0.5,qped=5.0,
        PBt=2.4,PBl=1.2,PBv=0.96,Atruss=2.370,hdeck=0.35,htruss=8.50,
        EWLq=1.46,hEWL=1.8,dT=15.0,
@@ -48,8 +48,8 @@ qBTR  = 9.0 if L<=30 else 9.0*(0.5+15.0/L)      # 5.85 kPa
 FBD   = 0.4 if L<=50 else (0.3 if L>=90 else 0.4-0.1*(L-50)/40)
 qBGT  = 49.0*(1+FBD)                            # 63.7 kN/m
 
-MS   ={y:q_slab*b_slab[y] for y in YS}
-MAtr ={y:(q_trot+P['wrail'] if y in (500,7100) else 0.0) for y in YS}
+MS   ={y:q_slab*b_slab[y]+(q_trot if y in (500,7100) else 0.0) for y in YS}
+MAtr ={y:(P['wrail'] if y in (500,7100) else 0.0) for y in YS}
 MAasp={y:q_asp*b_road[y] for y in YS}
 MA   ={y:MAtr[y]+MAasp[y] for y in YS}
 BTR  ={y:qBTR*b_btr[y] for y in YS}
