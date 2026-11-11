@@ -18,7 +18,7 @@ for ln in open(F,errors='ignore'):
     elif sec=='*ELEMENT': elems.append(dict(id=int(f[0]),sec=int(f[3]),n1=int(f[4]),n2=int(f[5])))
     elif sec=='*SECTION' and f[1] in ('DBUSER','TAPERED'): S[int(f[0])]=f
     elif sec=='*CONSTRAINT': sup[int(f[0])]=f[1]
-    elif sec=='*RIGIDLINK': rl.append((int(f[0]),f[1],[int(x) for x in f[2].split()]))
+    elif sec=='*RIGIDLINK': rl.append((int(f[0]),f[2],[int(x) for x in f[1].split()]))
     elif sec=='*BEAMLOAD': bl[lc].append((f[0],f[3],float(f[11])))
     elif sec=='*CONLOAD': cl[lc].append((int(f[0]),float(f[1]),float(f[2]),float(f[3])))
     elif sec=='*ELTEMPER': tp[lc].append((f[0],float(f[1])))
@@ -150,22 +150,85 @@ for k in LCF:
         fe[2]=fe[8]=wl[2]*L/2;fe[4]=-wl[2]*L*L/12;fe[10]=wl[2]*L*L/12
         o[e['id']]=f-fe
     FR[k]=o
+import sys
+DIA = '--dia' in sys.argv
+if DIA:
+    rl=[]
+    PAN=sorted({round(nodes[n][0],1) for n in nodes if nodes[n][2]<3000})
+    bxf={}
+    for n in nodes:
+        if nodes[n][2]<3000: bxf.setdefault(round(nodes[n][0],1),{})[round(nodes[n][1],1)]=n
+    YF=[0.,500.,1600.,2700.,3800.,4900.,6000.,7100.,7600.]
+    for x in PAN:
+        if sorted(bxf[x])!=YF: continue
+        rl.append((bxf[x][0.],'110001',[bxf[x][y] for y in YF[1:]]))
+    sl=set()
+    for m,dof,ss in rl:
+        for sv in ss:
+            for i,ch in enumerate(dof):
+                if ch=='1': sl.add(idx[sv]*6+i)
+    keep=[i for i in range(ND) if i not in sl]; pos={d:i for i,d in enumerate(keep)}
+    T=np.zeros((ND,len(keep)))
+    for i,d in enumerate(keep): T[d,i]=1.
+    for m,dof,ss in rl:
+        for sv in ss:
+            dx,dy=nodes[sv][0]-nodes[m][0],nodes[sv][1]-nodes[m][1]
+            T[idx[sv]*6+0,pos[idx[m]*6+0]]=1.; T[idx[sv]*6+0,pos[idx[m]*6+5]]=-dy
+            T[idx[sv]*6+1,pos[idx[m]*6+1]]=1.; T[idx[sv]*6+1,pos[idx[m]*6+5]]= dx
+            T[idx[sv]*6+5,pos[idx[m]*6+5]]=1.
+    Kr=T.T@K@T; fr=np.array(sorted(set(range(len(keep)))-set(pos[f] for f in fix if f in pos)))
+    Kff=Kr[np.ix_(fr,fr)]
+    print("  [diafragma AKTIF: %d rigid link]  eigen min = %.4g"%(len(rl),np.linalg.eigvalsh(Kff).min()))
+    for k,Fv in LCF.items():
+        u=np.zeros(len(keep)); u[fr]=np.linalg.solve(Kff,(T.T@Fv)[fr]); U[k]=T@u
+    for k in LCF:
+        o={}
+        for X in EL:
+            e=X['e'];L=X['L'];Rm=np.zeros((12,12))
+            for b in range(4): Rm[3*b:3*b+3,3*b:3*b+3]=X['T']
+            f=kl(L,X['p'])@(Rm@U[k][dofs(e)])
+            wl=X['T']@UDL[k][e['id']] if e['id'] in UDL[k] else np.zeros(3)
+            fe=np.zeros(12)
+            fe[0]=fe[6]=wl[0]*L/2;fe[1]=fe[7]=wl[1]*L/2;fe[5]=wl[1]*L*L/12;fe[11]=-wl[1]*L*L/12
+            fe[2]=fe[8]=wl[2]*L/2;fe[4]=-wl[2]*L*L/12;fe[10]=wl[2]*L*L/12
+            o[e['id']]=f-fe
+        FR[k]=o
+def run(scale,skip_eq):
+    out=[]
+    for X in EL:
+        e=X['e'];L=X['L'];Pt,Pc,My0,Mz0=cap(X['p'],L,e['sec'] in STSEC); w=(0,None)
+        for cn,terms in comb:
+            if 'LAYAN' in cn or 'LENDUT' in cn: continue
+            iseq='EKSTREM' in cn
+            if skip_eq and iseq: continue
+            f=np.zeros(12); wl=np.zeros(3)
+            for lcn,g in terms:
+                if lcn.startswith('EQ'): g*=scale
+                if lcn in FR: f+=g*FR[lcn][e['id']]
+                if lcn in UDL and e['id'] in UDL[lcn]: wl+=g*(X['T']@UDL[lcn][e['id']])
+            N=-f[0]; My=max(abs(f[4]),abs(f[10]),abs((f[4]-f[10])/2-wl[2]*L*L/8))
+            Mz=max(abs(f[5]),abs(f[11]),abs((-f[5]+f[11])/2+wl[1]*L*L/8))
+            rp=abs(N)/(Pc if N<0 else Pt); rm=My/My0+Mz/Mz0
+            rt=rp/2+rm if rp<0.2 else rp+8/9*rm
+            if rt>w[0]: w=(rt,cn,N/1000,My/1e6,Mz/1e6)
+        out.append((w[0],e['id'],NM[e['sec']],w[1],w[2],w[3],w[4]))
+    return sorted(out,reverse=True)
+for lab,sk in (("TANPA GEMPA (KUAT I/III/IV/V)",True),("DENGAN GEMPA koef 0.910 (R=1)",False)):
+    rr=run(1.0,sk); fm=collections.defaultdict(float)
+    for r,e,nm,cn,N,My,Mz in rr: fm[nm.rstrip('0123456789-')]=max(fm[nm.rstrip('0123456789-')],r)
+    print("\n  %-32s NG: %d/%d   maks %.2f"%(lab,len([x for x in rr if x[0]>1]),len(rr),rr[0][0]))
+    print("    "+" | ".join("%s %.2f"%(k,v) for k,v in sorted(fm.items(),key=lambda x:-x[1])))
+    for r,e,nm,cn,N,My,Mz in rr[:4]: print("      %.2f el%-5d %-8s %-14s N=%8.1f My=%7.1f Mz=%7.1f"%(r,e,nm,cn,N,My,Mz))
+lo,hi=0.0,1.0
+for _ in range(14):
+    md=(lo+hi)/2
+    if run(md/0.910,False)[0][0]<=1.0: lo=md
+    else: hi=md
+print("\n  >>> KOEFISIEN GEMPA MAKSIMUM yang sanggup dipikul profil asli = %.3f"%lo)
 res=[]
 for X in EL:
-    e=X['e'];L=X['L'];Pt,Pc,My0,Mz0=cap(X['p'],L,e['sec'] in STSEC); w=(0,None)
-    for cn,terms in comb:
-        if 'LAYAN' in cn or 'LENDUT' in cn: continue
-        f=np.zeros(12); wl=np.zeros(3)
-        for lcn,g in terms:
-            if lcn in FR: f+=g*FR[lcn][e['id']]
-            if lcn in UDL and e['id'] in UDL[lcn]: wl+=g*(X['T']@UDL[lcn][e['id']])
-        N=-f[0]; My=max(abs(f[4]),abs(f[10]),abs((f[4]-f[10])/2-wl[2]*L*L/8))
-        Mz=max(abs(f[5]),abs(f[11]),abs((-f[5]+f[11])/2+wl[1]*L*L/8))
-        rp=abs(N)/(Pc if N<0 else Pt); rm=My/My0+Mz/Mz0
-        rt=rp/2+rm if rp<0.2 else rp+8/9*rm
-        if rt>w[0]: w=(rt,cn,N/1000,My/1e6,Mz/1e6)
-    res.append((w[0],e['id'],NM[e['sec']],w[1],w[2],w[3],w[4]))
-res.sort(reverse=True)
+    pass
+res=run(1.0,False)
 fam=collections.defaultdict(float)
 for r,e,nm,cn,N,My,Mz in res: fam[nm.rstrip('0123456789-')]=max(fam[nm.rstrip('0123456789-')],r)
 print("\nCEK KEKUATAN SEMUA KOMBINASI KUAT  ->  NG: %d / %d"%(len([x for x in res if x[0]>1]),len(res)))

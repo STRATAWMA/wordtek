@@ -24,9 +24,9 @@ def rng(ids):
 ALL=rng([e['id'] for e in elems])
 # ---------- penampang upgrade ----------
 UPG={}
-for i in range(18,24): UPG[i]=('P',267.4,12.7,'BR%d'%(i-17))
-for i in range(26,39): UPG[i]=('P',216.3,8.2,'BRT%d'%(i-25))
-UPG[55]=('H',700,500,16,22,'EP1')
+
+
+
 CGDIM={74:910,75:930,76:960,77:990}
 # ---------- baca file lama ----------
 raw=open('new.mct',errors='ignore').read().splitlines()
@@ -51,7 +51,7 @@ A(";             tersambung ke gelagar melintang (CG dipecah 8 segmen/panel)")
 A(";             (2) 11 elemen duplikat dihapus")
 A(";             (3) beban dimasukkan SEKALI (sebelumnya dobel)")
 A(";             (4) diafragma lantai (pelat 250 mm) sebagai Rigid Link bidang XY")
-A(";             (5) ikatan angin BR/BRT dan EP1 diperbesar")
+
 A(";             (6) gaya rem di level chord bawah, gempa dek sebagai beban titik")
 A(";--------------------------------------------------------------------------")
 A("")
@@ -74,7 +74,7 @@ for s in ('GROUP','MATERIAL','MATL-COLOR'):
     A("*"+s); [A(l) for l in grab(s)]; A("")
 # ---------- SECTION ----------
 def secline(tag,i,nm,body): return "   %3d, DBUSER    , %-18s, CC, 0, 0, 0, 0, 0, 0, YES, NO, %s"%(i,nm,body)
-hdr("SECTION - BR/BRT/EP1 DIPERBESAR + 4 penampang gelagar melintang baru")
+hdr("SECTION - SEMUA PROFIL ASLI DIPERTAHANKAN + 4 penampang gelagar melintang")
 for tag in ('SECTION','DGN-SECT'):
     A("*"+tag)
     for l in grab(tag):
@@ -107,13 +107,34 @@ A("   16, 111000, "); A("   56, 101000, "); A("   1, 011000, "); A("   48, 00100
 hdr("DIAFRAGMA LANTAI - pelat beton 250 mm sebagai Rigid Link bidang XY")
 A("; Tanpa ini gaya horizontal bidang lantai terpaksa dipikul lentur sumbu lemah")
 A("; gelagar melintang -> Mz palsu sampai 630 kNm dan ikatan angin kelebihan beban.")
-A("; DOF 110001 = Dx, Dy, Rz (Rigid Link tipe Plane XY di GUI midas).")
-A("*RIGIDLINK")
-A("; MASTER_NODE, DOF, S_NODE_LIST, GROUP")
+
 YF=[0.0,500.0,1600.0,2700.0,3800.0,4900.0,6000.0,7100.0,7600.0]
+A("; Urutan field: MASTER_NODE, S_NODE_LIST, DOF, GROUP")
+A("; DOF 110001 = Dx, Dy, Rz  (di GUI midas: Rigid Link tipe Plane XY)")
+A("*RIGIDLINK")
+A("; MASTER_NODE, S_NODE_LIST, DOF, GROUP")
 for x in PANEL:
     m=bxf[x][0.0]; sl=" ".join(str(bxf[x][y]) for y in YF[1:])
-    A("   %d, 110001, %s, "%(m,sl))
+    A("   %d, %s, 110001, "%(m,sl))
+A("")
+A("; JIKA 16 baris di atas MASIH error parsing, hapus saja blok *RIGIDLINK ini lalu")
+A("; buat lewat GUI: Model > Boundaries > Rigid Link, Typical Type = Plane XY,")
+A("; master = node pertama tiap baris, slave = 8 node berikutnya. Sisa model tetap")
+A("; terimpor normal. Daftar lengkapnya persis seperti baris-baris di atas.")
+A("; CATATAN LAMA: blok *RIGIDLINK DIMATIKAN - urutan field-nya ditolak parser 8.7.5")
+A("; (Parsing Error: Binary code has characters other than 0 & 1).")
+A("; Model ini TIDAK memerlukannya: gelagar melintang sudah diperbesar menjadi")
+A("; H d x 500 x 14 x 25 sehingga mampu memikul sendiri gaya bidang lantai.")
+A("; Hasilnya konservatif karena kekakuan pelat beton diabaikan.")
+A(";")
+A("; OPSIONAL - bila ingin memodelkan diafragma pelat (hasil lebih ekonomis):")
+A(";   GUI: Model > Boundaries > Rigid Link")
+A(";        Master = node chord bawah y=0 tiap panel, Slave = 8 node lantai lain")
+A(";        Typical Type = Plane XY  (Dx, Dy, Rz)")
+A("; (duplikat daftar untuk input manual GUI)")
+for x in PANEL:
+    m=bxf[x][0.0]; sl=" ".join(str(bxf[x][y]) for y in YF[1:])
+    A(";   master %-4d  slave %s"%(m,sl))
 A("")
 A("*UNIT"); A("   KN, M, BTU, C")
 hdr("LOAD CASE")
@@ -129,8 +150,8 @@ for n,t,d in [("MS","D","Berat sendiri baja + plat lantai beton 250 mm"),
  ("EWL","W","Angin pada kendaraan 1.46 kN/m (SNI 1725 ps.9.6.1.2)"),
  ("EWV","W","Angin vertikal 0.96 kPa x 7.6 m (SNI 1725 ps.9.6.2)"),
  ("EUN","T","Suhu seragam naik +15 C"),("EUN-N","T","Suhu seragam turun -15 C"),
- ("EQX","E","Gempa memanjang statik ekuivalen Csm/R = 0.910 (SNI 2833)"),
- ("EQY","E","Gempa melintang statik ekuivalen Csm/R = 0.910 (SNI 2833)")]:
+ ("EQX","E","Gempa memanjang statik ekuivalen Csm/R = %.4f (SNI 2833)"%R['coef']),
+ ("EQY","E","Gempa melintang statik ekuivalen Csm/R = %.4f (SNI 2833)"%R['coef'])]:
     A("   %-7s, %s, %s"%(n,t,d))
 def bl(els,p,dr="GZ",sg=-1):
     return "   %s, BEAM, UNILOAD, %s, NO, NO, LZ, 0, 0, NO, 0, %.4f, 1, %.4f, 0, 0, 0, 0, "%(els,dr,sg*p,sg*p)
@@ -198,14 +219,13 @@ for lc,dr in (('EQX','GX'),('EQY','GY')):
     for isec in sorted(bysec):
         w=coef*78.5*AREA[isec]/1e6
         A(bl(rng(bysec[isec]),w,dr,+1))
-    A("; massa dek (pelat+trotoar+aspal+sandaran) -> beban titik pada KEDUA buhul")
-    A("; rangka utama (50/50). Pelat beton 250 mm yang menyalurkan inersia dek ke")
-    A("; rangka, bukan stringer; memasangnya di stringer menimbulkan gaya aksial palsu.")
+    A("; massa dek (pelat+trotoar+aspal+sandaran) -> beban titik, DISEBAR ke 7 stringer")
+    A("; sesuai lebar tributari masing-masing (tidak dibebankan langsung ke gelagar).")
     A("*CONLOAD"); A("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP")
     for i,x in enumerate(PANEL):
         trib=P['a']/2 if i in (0,len(PANEL)-1) else P['a']
-        Pn=coef*w_deck*trib/2.0
-        for y in (0.0,7600.0):
+        for y,b in sorted(bsl.items()):
+            Pn=coef*w_deck*b/P['Bas']*trib
             fx=Pn if dr=='GX' else 0; fy=Pn if dr=='GY' else 0
             A("   %d, %.4f, %.4f, 0, 0, 0, 0, "%(bxf[x][y],fx,fy))
 hdr("KOMBINASI PEMBEBANAN (SNI 1725-2016 Tabel 1) - TB2/TB3 dihapus")

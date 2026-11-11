@@ -30,7 +30,7 @@ P=dict(L=99.9975,npan=15,a=6.6665,Bas=7.6,Wroad=6.0,Wtrot=0.5,nstr=7,s=1.1,
        wrail=0.5,qped=5.0,
        PBt=2.4,PBl=1.2,PBv=0.96,Atruss=2.370,hdeck=0.35,htruss=8.50,
        EWLq=1.46,hEWL=1.8,dT=15.0,
-       PGA=0.30,Ss=0.70,S1=0.30,Fpga=1.2,Fa=1.3,Fv=2.8,Req=1.0,
+       PGA=0.30,Ss=0.70,S1=0.30,Fpga=1.2,Fa=1.3,Fv=2.8,Req=3.0,
        Wsteel=3188.8)
 L=P['L']; s=P['s']; Wt=P['Wtrot']
 
