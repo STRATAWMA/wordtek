@@ -71,24 +71,17 @@
 
 *USE-STLD, TD-BTR
 *BEAMLOAD
-   275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -0.7313, 1, -0.7313, 0, 0, 0, 0, 
-   259to264 266to274, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
-   243to247 249to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
-   179to184 186to194, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
-   195to200 202to210, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
-   211to216 218to226, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
-   227to232 234to242, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -0.7313, 1, -0.7313, 0, 0, 0, 0, 
+; BTR 5.85 kPa x panjang tributari cross girder (6.6665 m; ujung 3.333 m)
+   426to429 434to437 442to445 450to453 458to461 466to469 474to477 482to485 490to493 498to501 506to509 514to517 522to525 530to533, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -38.9992, 1, -38.9992, 0, 0, 0, 0, 
+   425 430 433 438 441 446 449 454 457 462 465 470 473 478 481 486 489 494 497 502 505 510 513 518 521 526 529 534, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -23.9314, 1, -23.9314, 0, 0, 0, 0, 
+   418to421 538to541, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -19.4996, 1, -19.4996, 0, 0, 0, 0, 
+   417 422 537 542, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -11.9657, 1, -11.9657, 0, 0, 0, 0, 
 
 *USE-STLD, TD-BGT
-*CONLOAD
-; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP
-   182, 0, 0, -7.9625, 0, 0, 0, 
-   166, 0, 0, -70.0700, 0, 0, 0, 
-   150, 0, 0, -70.0700, 0, 0, 0, 
-   86, 0, 0, -70.0700, 0, 0, 0, 
-   102, 0, 0, -70.0700, 0, 0, 0, 
-   118, 0, 0, -70.0700, 0, 0, 0, 
-   134, 0, 0, -7.9625, 0, 0, 0, 
+*BEAMLOAD
+; BGT 49 x (1+0.30) = 63.7 kN/m, garis pisau pada cross girder x=46.666 m
+   474to477, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -63.7000, 1, -63.7000, 0, 0, 0, 0, 
+   473 478, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -39.0886, 1, -39.0886, 0, 0, 0, 0, 
 
 *USE-STLD, TB1
 ; 250 kN dibagi 2 chord bawah = 1.2500 kN/m ; kopel vertikal +/- 2.250 kN
@@ -103,8 +96,9 @@
 
 *USE-STLD, TP
 *BEAMLOAD
-   275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -2.5000, 1, -2.5000, 0, 0, 0, 0, 
-   227to232 234to242, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -2.5000, 1, -2.5000, 0, 0, 0, 0, 
+; pejalan kaki 5 kPa x 0.5 m trotoar -> segmen tepi cross girder
+   424 431to432 439to440 447to448 455to456 463to464 471to472 479to480 487to488 495to496 503to504 511to512 519to520 527to528 535, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -33.3325, 1, -33.3325, 0, 0, 0, 0, 
+   416 423 536 543, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -16.6663, 1, -16.6663, 0, 0, 0, 0, 
 
 *USE-STLD, EWS
 *BEAMLOAD

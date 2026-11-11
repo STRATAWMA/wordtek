@@ -229,10 +229,42 @@ A("; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, 
 for y in YS: A(bl(rng(STR[y]),R['MS'][y]))
 blk('MA'); A("*BEAMLOAD")
 for y in YS: A(bl(rng(STR[y]),R['MA'][y]))
+# --- BEBAN HIDUP DIPIKUL LANGSUNG OLEH CROSS GIRDER ---------------------
+#     Permintaan pengguna: MS + MA tetap di stringer, beban lajur D (BTR,
+#     BGT) dan pejalan kaki dipindah ke cross girder yang rasionya masih
+#     rendah (0.51-0.55). Total gaya ke rangka utama tidak berubah.
+#     Cross girder: 16 garis x 8 segmen (elem 416..543), tiap garis dibagi
+#     segmen y: 0-500, 500-1600, 1600-2700, ..., 6000-7100, 7100-7600.
+CGX=[0,6666,13333,20000,26666,33332,39999,46666,53332,59998,66665,73332,
+     79998,86664,93331,99998]
+CGSEG=[(0,500),(500,1600),(1600,2700),(2700,3800),(3800,4900),(4900,6000),
+       (6000,7100),(7100,7600)]
+CGE={x:{seg:416+8*i+j for j,seg in enumerate(CGSEG)} for i,x in enumerate(CGX)}
+# fraksi lebar tiap segmen yang terbebani (lajur 0.8..6.8 m; BTR 100% pada
+# 5.5 m tengah 1.05..6.55, 50% pada sisanya -> lebar efektif total 5.75 m)
+FR_BTR={(500,1600):0.675/1.1,(1600,2700):1.0,(2700,3800):1.0,(3800,4900):1.0,
+        (4900,6000):1.0,(6000,7100):0.675/1.1}
+FR_TP ={(0,500):1.0,(7100,7600):1.0}
+LTRIB={x:(P['a']/2 if x in (CGX[0],CGX[-1]) else P['a']) for x in CGX}
+XBGT=46666                       # cross girder terdekat ke tengah bentang
+def cgload(frmap,q,scale_by_trib):
+    """kumpulkan {intensitas: [elemen]} lalu keluarkan sebagai BEAMLOAD"""
+    import collections as _c
+    d=_c.defaultdict(list)
+    for x in CGX:
+        t=LTRIB[x] if scale_by_trib else 1.0
+        for seg,fr in frmap.items():
+            d[round(q*t*fr,4)].append(CGE[x][seg])
+    for v in sorted(d,reverse=True): A(bl(rng(d[v]),v))
 blk('TD-BTR'); A("*BEAMLOAD")
-for y in YS: A(bl(rng(STR[y]),R['BTR'][y]))
-blk('TD-BGT'); A("*CONLOAD"); A("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP")
-for y in YS: A("   %s, 0, 0, %.4f, 0, 0, 0, "%(R['NBGT'][y],-R['BGT'][y]))
+A("; BTR 5.85 kPa x panjang tributari cross girder (6.6665 m; ujung 3.333 m)")
+cgload(FR_BTR,R['qBTR'],True)
+blk('TD-BGT'); A("*BEAMLOAD")
+A("; BGT 49 x (1+0.30) = 63.7 kN/m, garis pisau pada cross girder x=46.666 m")
+import collections as _cc
+_d=_cc.defaultdict(list)
+for seg,fr in FR_BTR.items(): _d[round(R['qBGT']*fr,4)].append(CGE[XBGT][seg])
+for v in sorted(_d,reverse=True): A(bl(rng(_d[v]),v))
 blk('TB1')
 A("; 250 kN dibagi 2 chord bawah = %.4f kN/m ; kopel vertikal +/- %.3f kN"%(R['TB_tot']/2/P['L'],R['TB_V']))
 A("*BEAMLOAD")
@@ -241,7 +273,8 @@ A("*CONLOAD"); A("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP")
 for n in R['NSUP']['x0']: A("   %d, 0, 0, %.4f, 0, 0, 0, "%(n, R['TB_V']))
 for n in R['NSUP']['xL']: A("   %d, 0, 0, %.4f, 0, 0, 0, "%(n,-R['TB_V']))
 blk('TP'); A("*BEAMLOAD")
-for y in ('500','7100'): A(bl(rng(STR[y]),R['TP'][y]))
+A("; pejalan kaki 5 kPa x 0.5 m trotoar -> segmen tepi cross girder")
+cgload(FR_TP,P['qped'],True)
 blk('EWS'); A("*BEAMLOAD")
 A(bl(rng(TC['0'])+" "+rng(TC['7600']),R['EWS_tc'],"GY",+1))
 A(bl(rng(BC['0'])+" "+rng(BC['7600']),R['EWS_bc'],"GY",+1))
