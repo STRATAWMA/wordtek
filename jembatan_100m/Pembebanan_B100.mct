@@ -1,0 +1,246 @@
+;==========================================================================
+; INPUT PEMBEBANAN - JEMBATAN RANGKA BAJA KELAS A, BENTANG 100 m
+; Lebar as-as 7.600 m | lajur bersih 6.000 m | trotoar 2 x 0.500 m
+; 7 stringer @ 1.100 m (simetris thd as y=3.800 m) | panel buhul bawah 6.6665 m x 15
+; Acuan: SNI 1725-2016, SNI 2833-2016, AASHTO LRFD Bridge Design Specifications
+; Satuan file ini: TONF, MM -> SEMUA beban di bawah dalam kN dan m, karena itu
+; blok *UNIT di bawah mengubah satuan ke KN,M sebelum beban dibaca.
+;
+; CARA PAKAI (midas Civil):
+;   1. Buka model B100.mct / .mcb
+;   2. HAPUS DULU load data lama: Load > Static Loads > hapus isi tiap load case
+;      (MS, MA, TD-BTR, TD-BGT, EWS, EWL, EWV, EUN, EQX, EQY) agar tidak dobel.
+;   3. Tools > MCT Command Shell > buka file ini > Run
+;   4. Satuan model kembali ke TONF,MM lewat blok *UNIT di akhir file.
+;==========================================================================
+
+*UNIT
+; FORCE, LENGTH, HEAT, TEMPER
+   KN, M, BTU, C
+
+;--------------------------------------------------------------------------
+; LOAD CASE (tambahan: TP, EUN-N; lainnya sudah ada di model)
+;--------------------------------------------------------------------------
+*STLDCASE
+; LCNAME, LCTYPE, DESC
+   MS     , D, Berat sendiri - baja (selfweight) + plat lantai beton 250 mm
+   MA     , D, Beban mati tambahan - topping trotoar 100 mm + sandaran + aspal 50 mm
+   TD-BTR , L, Beban lajur D - BTR q = 5.85 kPa (SNI 1725 ps.8.3.1, L=100 m)
+   TD-BGT , L, Beban lajur D - BGT p = 49 x (1+FBD 0.30) = 63.7 kN/m
+   TP     , L, Beban pejalan kaki 5 kPa pada trotoar (SNI 1725 ps.8.9)
+   EWS    , W, Angin pada struktur PD = 2.4 kPa (SNI 1725 ps.9.6.1.1)
+   EWL    , W, Angin pada kendaraan EWl = 1.46 kN/m @1.8 m (SNI 1725 ps.9.6.1.2)
+   EWV    , W, Angin vertikal 0.96 kPa x 7.6 m ke atas (SNI 1725 ps.9.6.2)
+   EUN    , T, Suhu seragam naik dT = +15 C (SNI 1725 Tabel 18)
+   EUN-N  , T, Suhu seragam turun dT = -15 C (SNI 1725 Tabel 18)
+   EQX    , E, Gempa memanjang statik ekuivalen Csm/R = 0.910 (SNI 2833, Dili)
+   EQY    , E, Gempa melintang statik ekuivalen Csm/R = 0.910 (SNI 2833, Dili)
+
+;--------------------------------------------------------------------------
+; MS - BERAT SENDIRI : selfweight baja + plat lantai beton 250 mm
+;--------------------------------------------------------------------------
+*USE-STLD, MS
+; *SELFWEIGHT, X, Y, Z, GROUP
+*SELFWEIGHT, 0, 0, -1, 
+
+; Plat lantai t=250 mm, gamma beton 24 kN/m3 -> q = 6.00 kN/m2
+; w = q x lebar tributari  (stringer tepi b=1.050 m ; stringer dalam b=1.100 m)
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; [ECCEN] : bECCEN, ECCDIR, I-END, J-END, bJ-END
+; ST-1  y=0.500 m  b=1.050 m  ->  6.300 kN/m
+   275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.3000, 1, -6.3000, 0, 0, 0, 0, 
+; ST-2  y=1.600 m  b=1.100 m  ->  6.600 kN/m
+   259to264 266to274, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.6000, 1, -6.6000, 0, 0, 0, 0, 
+; ST-3  y=2.700 m  b=1.100 m  ->  6.600 kN/m
+   243to248 250to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.6000, 1, -6.6000, 0, 0, 0, 0, 
+; ST-4  y=3.800 m  b=1.100 m  ->  6.600 kN/m
+   179to184 186to194, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.6000, 1, -6.6000, 0, 0, 0, 0, 
+; ST-5  y=4.900 m  b=1.100 m  ->  6.600 kN/m
+   195to200 202to210, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.6000, 1, -6.6000, 0, 0, 0, 0, 
+; ST-6  y=6.000 m  b=1.100 m  ->  6.600 kN/m
+   211to216 218to226, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.6000, 1, -6.6000, 0, 0, 0, 0, 
+; ST-7  y=7.100 m  b=1.050 m  ->  6.300 kN/m
+   227to232 234to242, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.3000, 1, -6.3000, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; MA - BEBAN MATI TAMBAHAN : topping trotoar 100 mm + sandaran + aspal 50 mm
+;--------------------------------------------------------------------------
+*USE-STLD, MA
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; ST-1 : topping 1.200 + sandaran 0.500 + aspal 0.275 = 1.975 kN/m
+   275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.9750, 1, -1.9750, 0, 0, 0, 0, 
+; ST-2 : topping 0.000 + sandaran 0.000 + aspal 1.210 = 1.210 kN/m
+   259to264 266to274, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
+; ST-3 : topping 0.000 + sandaran 0.000 + aspal 1.210 = 1.210 kN/m
+   243to248 250to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
+; ST-4 : topping 0.000 + sandaran 0.000 + aspal 1.210 = 1.210 kN/m
+   179to184 186to194, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
+; ST-5 : topping 0.000 + sandaran 0.000 + aspal 1.210 = 1.210 kN/m
+   195to200 202to210, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
+; ST-6 : topping 0.000 + sandaran 0.000 + aspal 1.210 = 1.210 kN/m
+   211to216 218to226, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
+; ST-7 : topping 1.200 + sandaran 0.500 + aspal 0.275 = 1.975 kN/m
+   227to232 234to242, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.9750, 1, -1.9750, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; TD-BTR - BEBAN LAJUR D, BEBAN TERBAGI RATA  q = 5.85 kPa
+;--------------------------------------------------------------------------
+; q = 9.0 x (0.5 + 15/L) = 9.0 x (0.5 + 15/100) = 5.85 kPa
+; 100% pada lebar 5.5 m, 50% pada sisa 0.5 m -> b efektif total 5.75 m
+*USE-STLD, TD-BTR
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; ST-1  b_eff=0.125 m -> 0.731 kN/m
+   275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -0.7313, 1, -0.7313, 0, 0, 0, 0, 
+; ST-2  b_eff=1.100 m -> 6.435 kN/m
+   259to264 266to274, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
+; ST-3  b_eff=1.100 m -> 6.435 kN/m
+   243to248 250to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
+; ST-4  b_eff=1.100 m -> 6.435 kN/m
+   179to184 186to194, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
+; ST-5  b_eff=1.100 m -> 6.435 kN/m
+   195to200 202to210, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
+; ST-6  b_eff=1.100 m -> 6.435 kN/m
+   211to216 218to226, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
+; ST-7  b_eff=0.125 m -> 0.731 kN/m
+   227to232 234to242, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -0.7313, 1, -0.7313, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; TD-BGT - BEBAN LAJUR D, BEBAN GARIS TERPUSAT  p = 49 x 1.30 = 63.70 kN/m
+;--------------------------------------------------------------------------
+; FBD = 0.30 (L = 100 m >= 90 m, SNI 1725 Gambar 10)
+; dipasang pada titik buhul x = 46.6655 m (buhul terdekat tengah bentang)
+*USE-STLD, TD-BGT
+*CONLOAD
+; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP
+   182, 0, 0, -7.9625, 0, 0, 0, 
+   166, 0, 0, -70.0700, 0, 0, 0, 
+   150, 0, 0, -70.0700, 0, 0, 0, 
+   86, 0, 0, -70.0700, 0, 0, 0, 
+   102, 0, 0, -70.0700, 0, 0, 0, 
+   118, 0, 0, -70.0700, 0, 0, 0, 
+   134, 0, 0, -7.9625, 0, 0, 0, 
+; total = 366.28 kN
+
+;--------------------------------------------------------------------------
+; TP - BEBAN PEJALAN KAKI 5 kPa x 0.5 m = 2.50 kN/m tiap trotoar
+;--------------------------------------------------------------------------
+*USE-STLD, TP
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+   275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -2.5000, 1, -2.5000, 0, 0, 0, 0, 
+   227to232 234to242, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -2.5000, 1, -2.5000, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; EWS - ANGIN PADA STRUKTUR  PD = PB = 2.4 kPa (V = 90 km/h = VB)
+;--------------------------------------------------------------------------
+; area ekspos = 2 x 2.370 (rangka) + 0.350 (sisi lantai) = 5.090 m2/m
+; EWs total = 2.4 x 5.090 = 12.216 kN/m
+*USE-STLD, EWS
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; chord ATAS tiap rangka = 2.844 kN/m (+GY)
+   72to85 132to145, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 2.8440, 1, 2.8440, 0, 0, 0, 0, 
+; chord BAWAH tiap rangka = 3.264 kN/m (+GY)
+   1to6 8to16 86to91 93to101, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 3.2640, 1, 3.2640, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; EWL - ANGIN PADA KENDARAAN  EWl = 1.46 kN/m, 1.8 m di atas lantai
+;--------------------------------------------------------------------------
+*USE-STLD, EWL
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; horizontal: 1.46/2 = 0.730 kN/m tiap chord bawah (+GY)
+   1to6 8to16 86to91 93to101, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 0.7300, 1, 0.7300, 0, 0, 0, 0, 
+; kopel vertikal dari eksentrisitas 1.8 m : M = 1.46 x 1.8 = 2.628 kNm/m
+; dV = 2.628 / 7.6 = 0.3458 kN/m (angkat di y=0, tekan di y=7.6)
+   1to6 8to16, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, 0.3458, 1, 0.3458, 0, 0, 0, 0, 
+   86to91 93to101, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -0.3458, 1, -0.3458, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; EWV - ANGIN VERTIKAL KE ATAS  0.96 kPa x 7.6 m = 7.296 kN/m
+;--------------------------------------------------------------------------
+; bekerja pada 1/4 lebar dari tepi windward -> 75% / 25%
+*USE-STLD, EWV
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; windward y=0 : 5.472 kN/m ke atas
+   1to6 8to16, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, 5.4720, 1, 5.4720, 0, 0, 0, 0, 
+; leeward  y=7.6 : 1.824 kN/m ke atas
+   86to91 93to101, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, 1.8240, 1, 1.8240, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; EUN / EUN-N - BEBAN SUHU SERAGAM  dT = +/- 15 C
+;--------------------------------------------------------------------------
+*USE-STLD, EUN
+*ELTEMPER
+; ELEM_LIST, TEMPER, GROUP
+   1to16 33 35to36 38to39 41to42 44to45 47to48 51to52 54to55 57to145 147to354 356to415, 15.0, 
+
+*USE-STLD, EUN-N
+*ELTEMPER
+; ELEM_LIST, TEMPER, GROUP
+   1to16 33 35to36 38to39 41to42 44to45 47to48 51to52 54to55 57to145 147to354 356to415, -15.0, 
+
+;--------------------------------------------------------------------------
+; EQX / EQY - GEMPA STATIK EKUIVALEN (SNI 2833-2016) - TIMOR LESTE (DILI)
+;--------------------------------------------------------------------------
+; PGA=0.30 g  Ss=0.70 g  S1=0.30 g  kelas situs SE
+; FPGA=1.2 Fa=1.3 Fv=2.8 -> As=0.360  SDS=0.910  SD1=0.840  Ts=0.923 s
+; Csm = SDS = 0.910  ; R = 1.0  ; koefisien = 0.910
+; W permanen = 87.49 kN/m x 99.9975 m = 8748.7 kN  ->  EQ = 7961.3 kN
+; PERINGATAN: parameter hazard adalah ASUMSI regional Dili - WAJIB diverifikasi
+
+*USE-STLD, EQX
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; ST-1 massa dek -> 6.990 kN/m
+   275to280 282to290, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 6.9902, 1, 6.9902, 0, 0, 0, 0, 
+; ST-2 massa dek -> 7.323 kN/m
+   259to264 266to274, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-3 massa dek -> 7.323 kN/m
+   243to248 250to258, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-4 massa dek -> 7.323 kN/m
+   179to184 186to194, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-5 massa dek -> 7.323 kN/m
+   195to200 202to210, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-6 massa dek -> 7.323 kN/m
+   211to216 218to226, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-7 massa dek -> 6.990 kN/m
+   227to232 234to242, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 6.9902, 1, 6.9902, 0, 0, 0, 0, 
+; massa baja -> chord bawah 7.980 kN/m tiap sisi
+   1to6 8to16 86to91 93to101, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 7.9802, 1, 7.9802, 0, 0, 0, 0, 
+; massa baja -> chord atas 6.996 kN/m tiap sisi
+   72to85 132to145, BEAM, UNILOAD, GX, NO, NO, LZ, 0, 0, NO, 0, 6.9956, 1, 6.9956, 0, 0, 0, 0, 
+
+*USE-STLD, EQY
+*BEAMLOAD
+; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+; ST-1 massa dek -> 6.990 kN/m
+   275to280 282to290, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 6.9902, 1, 6.9902, 0, 0, 0, 0, 
+; ST-2 massa dek -> 7.323 kN/m
+   259to264 266to274, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-3 massa dek -> 7.323 kN/m
+   243to248 250to258, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-4 massa dek -> 7.323 kN/m
+   179to184 186to194, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-5 massa dek -> 7.323 kN/m
+   195to200 202to210, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-6 massa dek -> 7.323 kN/m
+   211to216 218to226, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 7.3231, 1, 7.3231, 0, 0, 0, 0, 
+; ST-7 massa dek -> 6.990 kN/m
+   227to232 234to242, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 6.9902, 1, 6.9902, 0, 0, 0, 0, 
+; massa baja -> chord bawah 7.980 kN/m tiap sisi
+   1to6 8to16 86to91 93to101, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 7.9802, 1, 7.9802, 0, 0, 0, 0, 
+; massa baja -> chord atas 6.996 kN/m tiap sisi
+   72to85 132to145, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 6.9956, 1, 6.9956, 0, 0, 0, 0, 
+
+;--------------------------------------------------------------------------
+; KEMBALIKAN SATUAN MODEL KE TONF, MM
+;--------------------------------------------------------------------------
+*UNIT
+   TONF, MM, BTU, C
+
+*ENDDATA
