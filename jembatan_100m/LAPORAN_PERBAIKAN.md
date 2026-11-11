@@ -127,8 +127,39 @@ Verifikasi berasal dari analisis rangka 3D yang saya tulis sendiri (direct stiff
 | Error midas | Sebab | Perbaikan |
 |---|---|---|
 | `The number of parameters are too many` (baris 28, 36, 37) | koma di dalam teks deskripsi `*STLDCASE` | koma diganti tanda hubung |
-| `Binary code has characters other than 0 & 1` lalu `The integer value without a sign is invalid` (16 baris) | urutan field `*RIGIDLINK` salah; dua pesan itu menunjukkan field 1 dan 2 harus integer dan field 3 binary | satu pasangan master–slave per baris: `MASTER_NODE, SLAVE_NODE, DOF, GROUP` → 128 baris |
-| `*REBAR-MATL-CODE cannot be executed when nodes or sections are included` | blok itu hanya untuk desain beton bertulang | blok dihapus (tidak dipakai jembatan baja) |
+| `*RIGIDLINK` — tiga pesan berbeda | field 1 ternyata **nomor urut**, bukan master | format benar: `iNO, MASTER_NODE, DOF, S_NODE_LIST, GROUP` |
+| `*REBAR-MATL-CODE cannot be executed when nodes or sections are included` | blok itu hanya untuk desain beton bertulang | dipasang kembali **dengan sengaja** sebagai pendeteksi model kosong |
+
+### Cara format `*RIGIDLINK` ditemukan
+
+Tiga pesan error midas yang berbeda ternyata dijelaskan oleh satu format yang sama:
+
+| Yang dicoba | Pesan midas | Yang dibaca midas |
+|---|---|---|
+| `1, 110001, <list>,` | "Binary code has characters other than 0 & 1" | iNO=1, master=110001 (integer sah), DOF=`<list>` ✗ |
+| `1, <list>, 110001,` | "The integer value without a sign is invalid" | iNO=1, master=`<list>` ✗ |
+| `1, 175, 110001,` | "The master node No. 175 has no slave node" | iNO=1, master=175, DOF=110001, slave kosong ✗ |
+
+Format yang benar: `1, 1, 110001, 175 159 143 79 95 111 127 48,` — 16 baris, 8 slave per baris = 128 pasangan.
+
+## Beban bertumpuk — cara menjamin tidak terjadi
+
+midas **menimpa** node, elemen dan penampang karena nomornya sama, tetapi **selalu menambahkan** beban. Jadi menjalankan file ini di atas model yang sudah berisi data pasti melipatgandakan beban.
+
+**Prosedur wajib:**
+1. midas → `File > New` (model benar-benar kosong)
+2. `Tools > MCT Command Shell` → buka `B100_FINAL.mct` → **Run**
+3. Simpan dengan nama baru
+
+Terpaksa memakai model lama? Hapus dulu **seluruh 13 Static Load Case** (`Load > Static Load Cases`) — menghapus load case ikut menghapus data bebannya — baru Run.
+
+**Pendeteksi otomatis.** Blok `*REBAR-MATL-CODE` dipasang kembali di awal file dengan sengaja: midas menolaknya bila model sudah berisi node atau penampang. Jadi
+
+> muncul error `REBAR-MATL-CODE cannot be executed when nodes or sections are included` → **model belum kosong, hentikan dan ulangi dari File > New**
+
+Kalau tidak muncul error itu, model bersih dan beban dijamin tidak bertumpuk.
+
+Peringatan `Elements 6 & 7 are overlapped` dan 10 pasangan lain juga berasal dari model lama — file ini sudah diverifikasi **0 elemen bertumpuk** dari 473.
 
 ## Cek setelah impor — jumlah entri harus TEPAT
 
@@ -143,6 +174,6 @@ Verifikasi berasal dari analisis rangka 3D yang saya tulis sendiri (direct stiff
 | EWS / EWL / EWV | **58** / **60** / **30** beam |
 | EUN / EUN-N | **473** element temperature |
 | EQX / EQY | **473** beam + **112** nodal |
-| Boundaries → Rigid Link | **128** |
+| Boundaries → Rigid Link | **16** master × 8 slave = **128** pasangan |
 
 Bila MS menunjukkan 210, berarti terimpor ke model yang sudah berisi data — ulangi dari model kosong.
