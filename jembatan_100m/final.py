@@ -264,7 +264,9 @@ LTRIB={x:(P['a']/2 if x in (CGX[0],CGX[-1]) else P['a']) for x in CGX}
 XBGT=46666                       # cross girder terdekat ke tengah bentang
 def blp(els,p,d1,d2,dr="GZ",sg=-1):
     """UNILOAD parsial: hanya pada bagian d1..d2 (relatif) dari batang"""
-    return ("   %s, BEAM, UNILOAD, %s, NO, NO, LZ, 0, 0, NO, 0, "
+    # urutan field (sesuai export midas): ELEM, CMD, TYPE, DIR, bPROJ,
+    # bECCEN, ECCDIR, I-END, J-END, bJ-END, D1, P1, D2, P2, D3, P3, D4, P4, GROUP
+    return ("   %s, BEAM, UNILOAD, %s, NO, NO, LZ, 0, 0, NO, "
             "%.4f, %.4f, %.4f, %.4f, 0, 0, 0, 0, "%(els,dr,d1,sg*p,d2,sg*p))
 def cgload(frmap,q,scale_by_trib):
     """kumpulkan {(d1,d2,intensitas): [elemen]} lalu keluarkan sebagai BEAMLOAD"""
