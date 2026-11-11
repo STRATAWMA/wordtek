@@ -175,8 +175,19 @@ for x in PANEL:
     m=bxf[x][0.0]; sl=" ".join(str(bxf[x][y]) for y in YF[1:])
     A(";   master %-4d  slave %s"%(m,sl))
 A("")
-A("*UNIT"); A("   KN, M, BTU, C")
+hdr("BEBAN BERGERAK & MATERIAL DESAIN - tetap di satuan TONF, MM")
+A("; LINELANE memuat lebar lajur dalam mm, VEHICLE memuat gandar dalam tonf,")
+A("; DGN-MATL memuat Fy dalam tonf/mm2. Bila blok-blok ini terbaca di satuan")
+A("; KN,M, Fy menjadi 0.0362 kN/m2 dan SELURUH kapasitas batang jadi nol")
+A("; (pPn 0.0008 kN) sehingga semua batang NG / UPLT.")
+for _s in ('MVLDCODE','LINELANE','VEHICLE','MVLDCASE','DGN-MATL'):
+    _g=grab(_s)
+    if _g: A("*"+_s); [A(_l) for _l in _g]; A("")
+A("; ---- mulai di sini satuan pindah ke KN, M khusus untuk DATA BEBAN ----")
 A("@@@SPLIT@@@")
+A("*UNIT")
+A("; FORCE, LENGTH, HEAT, TEMPER")
+A("   KN, M, BTU, C")
 hdr("LOAD CASE")
 A("*STLDCASE")
 A("; LCNAME, LCTYPE, DESC")
@@ -193,6 +204,7 @@ for n,t,d in [("MS","D","Berat sendiri baja + plat lantai beton 250 mm"),
  ("EQX","E","Gempa memanjang Csm=SD1/T=0.470/1.7222 -> koef %.4f (SNI 2833)"%R['coefX']),
  ("EQY","E","Gempa melintang  Csm=SD1/T=0.470/1.8790 -> koef %.4f (SNI 2833)"%R['coefY'])]:
     A("   %-7s, %s, %s"%(n,t,d))
+# Seluruh blok beban di bawah ini memakai satuan KN, M (lihat *UNIT di atas).
 def bl(els,p,dr="GZ",sg=-1):
     return "   %s, BEAM, UNILOAD, %s, NO, NO, LZ, 0, 0, NO, 0, %.4f, 1, %.4f, 0, 0, 0, 0, "%(els,dr,sg*p,sg*p)
 def blk(lc,title=None):
@@ -290,9 +302,6 @@ for nm,kind,terms in CB:
     ch=[terms[i:i+5] for i in range(0,len(terms),5)]
     for g in ch: A("        "+", ".join("ST, %s, %g"%(a,b) for a,b in g))
 A("")
-for s in ('MVLDCODE','LINELANE','VEHICLE','MVLDCASE','DGN-MATL'):
-    g=grab(s)
-    if g: A("*"+s); [A(l) for l in g]; A("")
 hdr("CATATAN PARAMETER DESAIN - WAJIB DISET DI GUI MIDAS")
 A("; 1. PANJANG TEKUK STRINGER (ST1-1, ST1-2, ST2-1, ST2-2)")
 A(";    Design > Steel Design Parameter > Unbraced Length:  Lz = Lb = 0")
@@ -338,7 +347,33 @@ H="""
 
 """.lstrip()
 body=head[head.index("*VERSION"):].rstrip()
-if body.endswith("KN, M, BTU, C"):
-    body=body[:body.rindex("*UNIT")].rstrip()
+
 open('B100_1_STRUKTUR.mct','w').write(H+body+"\n\n*ENDDATA\n")
+
+L="""
+;--------------------------------------------------------------------------
+;  BAGIAN 2 dari 2 : DATA BEBAN DAN KOMBINASI
+;  Jembatan Rangka Baja Kelas A - bentang 100 m - BM 100 - lokasi Timor Leste
+;
+;  >>> JALANKAN HANYA SATU KALI, SETELAH B100_1_STRUKTUR.mct. <<<
+;  midas SELALU MENAMBAHKAN data beban, tidak pernah menimpanya.
+;
+;  Perlu mengulang? Hapus dulu 13 Static Load Case di
+;  Load > Static Load Cases (menghapus case ikut menghapus bebannya),
+;  baru jalankan file ini lagi.
+;
+;  SATUAN: file ini memakai KN, M. Blok yang peka satuan lain
+;  (SECTION, MATERIAL, DGN-MATL, LINELANE, VEHICLE) seluruhnya ada di
+;  BAGIAN 1 dengan satuan TONF, MM - jangan dipindahkan ke sini.
+;
+;  CEK SETELAH RUN - jumlah entri harus TEPAT:
+;    MS 105 beam + Self Weight | MA 105 | TD-BTR 105 | TD-BGT 7 nodal
+;    TB1 30 beam + 4 nodal     | TP 30  | EWS 58     | EWL 60 | EWV 30
+;    EUN / EUN-N 473 temper    | EQX & EQY 473 beam + 112 nodal
+;  Bila MS menunjukkan 210, beban bertumpuk - hapus semua load case, ulangi.
+;--------------------------------------------------------------------------
+
+""".lstrip()
+open('B100_2_BEBAN.mct','w').write(L+tail)
+
 print("baris gabungan:",len(O))

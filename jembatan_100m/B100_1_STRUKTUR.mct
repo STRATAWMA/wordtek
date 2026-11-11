@@ -1318,4 +1318,190 @@
 ;   master 15    slave 184 168 152 93 104 120 136 57
 ;   master 16    slave 183 167 151 94 103 119 135 56
 
+
+;============================================================================
+; BEBAN BERGERAK & MATERIAL DESAIN - tetap di satuan TONF, MM
+;============================================================================
+; LINELANE memuat lebar lajur dalam mm, VEHICLE memuat gandar dalam tonf,
+; DGN-MATL memuat Fy dalam tonf/mm2. Bila blok-blok ini terbaca di satuan
+; KN,M, Fy menjadi 0.0362 kN/m2 dan SELURUH kapasitas batang jadi nol
+; (pPn 0.0008 kN) sehingga semua batang NG / UPLT.
+*MVLDCODE
+; CODE=CODE
+   CODE=AASHTO LRFD
+
+
+*LINELANE
+; NAME=NAME, LDIST, GROUP, SKEWS, SKEWE, MOVING, LW, WS, bLANEOPT, ALLOWWIDTH  ; line 1
+;      iELEM1, ECC1, FACT1, bSPAN1, ECCVL...                                   ; from line 2
+   NAME=Lajur 1, LANE, , 0, 0, BOTH, 3000, 1828.8, NO, 3000
+          251, 0, 0, NO, 0,   252, 0, 0, NO, 0,   253, 0, 0, NO, 0
+          254, 0, 0, NO, 0,   255, 0, 0, NO, 0,   256, 0, 0, NO, 0
+          257, 0, 0, NO, 0,   258, 0, 0, NO, 0,   250, 0, 0, NO, 0
+          249, 0, 0, NO, 0,   247, 0, 0, NO, 0,   246, 0, 0, NO, 0
+          245, 0, 0, NO, 0,   244, 0, 0, NO, 0,   243, 0, 0, NO, 0
+   NAME=Lajur 2, LANE, , 0, 0, BOTH, 3000, 1828.8, NO, 3000
+          203, 0, 0, NO, 0,   204, 0, 0, NO, 0,   205, 0, 0, NO, 0
+          206, 0, 0, NO, 0,   207, 0, 0, NO, 0,   208, 0, 0, NO, 0
+          209, 0, 0, NO, 0,   210, 0, 0, NO, 0,   202, 0, 0, NO, 0
+          200, 0, 0, NO, 0,   199, 0, 0, NO, 0,   198, 0, 0, NO, 0
+          197, 0, 0, NO, 0,   196, 0, 0, NO, 0,   195, 0, 0, NO, 0
+
+
+*VEHICLE
+; if Moving Load Code is China
+; NAME=NAME, 1, TYPE-NAME, CODE                                                       ; standard
+; NAME=NAME, 2, LTYPE, [TRUCK/LANE] or [TRAIN/SUBWAY] or [CROWD]                      ; user: line 1
+;      LOAD1, DIST1, LOAD2, DIST2, ...                                                ; user: from line 2
+; [TRUCK/LANE] : 1, P, Qm, Qq                                                         ; truck(JTG)
+; [TRUCK/LANE] : 2, P, Qm, Qq                                                         ; lane load1
+; [TRUCK/LANE] : 3, Qk, Pk1, L1, Pk2, L2                                              ; lane load2
+; [TRUCK/LANE] : 4, dW, dD                                                            ; crawler type
+; [TRUCK/LANE] : 5                                                                    ; GC type load
+; [TRAIN/SUBWAY] : iTYPE, W1, D1, W2, D2                                              ; train-type1,3
+; [TRAIN/SUBWAY] : iTYPE, DD, FD, BD, MAINCOUNT                                       ; train-type2
+; [TRAIN/SUBWAY] : 4, P1, D1, P2, D2, P3, D3, P4, dD, Po, n, IFR                      ; subway
+; [CROWD] : 1, dW1                                                                    ; crowd-type1
+; [CROWD] : 2, dW1, dL1, dW2, dL2, WIDTH                                              ; crowd-type2
+; if Moving Load Type is India
+; NAME=NAME, 1, TYPE-NAME, CODE                                                       ; standard
+; NAME=NAME, 2, bWTB, P, D, Pb, Db, dD1, dD2, NDIST                                   ; user: line 1
+; NAME=NAME, 2, bWTB, dD1, dD2, NDIST                                                 ; user: line 1
+;      LOAD1, DIST1, LOAD2, DIST2, ...                                                ; user: from line 2
+; if Moving Load Code is CANADA
+; NAME=NAME, 1, TYPE-NAME, DLA, CODE, [DYNA]                                          ; standard
+; NAME=NAME, 2, bTRAIN, W(W1), PL(D1), PLM(W2), PLV(D2), NDIST, [DYNA]                ; user: line 1
+;      LOAD1, DIST1, LOAD2, DIST2, ...                                                ; user: from line 2
+; [DYNA] : nDYNA, FACT1AXLE, FACT2AXLE, FACT3AXLE                                     ; Dynamic Load Allowance
+; if Moving Load Code is BS
+; NAME=NAME, 1, TYPE-NAME, CODE, UNITNUM                                              ; standard
+; NAME=nLane, FACTOR1, FACTOR2, FACTOR3, FACTOR4, ADDDATA, AL, CA, LL                 ; HA, HA & HB, HA & HB(Auto)
+; NAME=NAME, 2, iSTYPE, W1, W2, W3, L, Pa, Pb, D1, D2, d, UNITNUM                     ; user(BS 5400)
+; NAME=NAME, 2, iSTYPE, [BD37/01-HA], [BS-DATA-LF]                                    ; user(HA)
+; NAME=NAME, 2, iSTYPE, [BS-DATA-HB]                                                  ; user(HB)
+; NAME=NAME, 2, iSTYPE, [BD37/01-HA2], [BS-DATA-HB2], [BS-DATA-LF]                    ; user(HA&HB)
+; NAME=NAME, 2, iSTYPE, [BD37/01-HA], [BD37/01-HB], [BS-DATA-LF]                      ; user(HA&HB(AUTO))
+; NAME=NAME, 2, iSTYPE, W, L                                                          ; user(Pedestrian)
+; NAME=NAME, 2, iSTYPE, V, AN, MINS, MAXS, P1, D1, P2, D2, ...                        ; user(Special Vehicle)
+; [BS-DATA-HA]  : W1, W2, W3, EXP, EXP2, L1, L2, Pa
+; [BS-DATA-HA2] : W1, W2, W3, EXP, EXP2, L1, L2
+; [BS-DATA-HB]  : Pb, D1, D2, d, UNITNUM
+; [BS-DATA-HB2] : Pb, D1, D2, d, dd, UNITNUM
+; [BS-DATA-LF] : nLT, LF1, LF2, LF3, LF4 
+; if Moving Load Code is EUROCODE
+; NAME=NAME, 1, iTYPE, TYPE-NAME, PSY1, PSY2, PHI, [AF7]                              ; standard (LM1, FLM1)
+; NAME=NAME, 1, iTYPE, TYPE-NAME, bDF, bU, PHI, PSY, ADJ, IN                          ; standard (others)
+; NAME=NAME, 2, 1, [AF7]                                                              ; user(Type 1)
+;      [LOAD7], D, PHI, TPSY, UPSY                                                    ; user(Type 1): line 2 
+; NAME=NAME, 2, 2, ALP, TPSY, W, BET, LPSY, P1, D1, P2, D2, ...                       ; user(Type 2)
+; NAME=NAME, 2, 3                                                                     ; user(Type 3)
+;      [LOADCASE1]                                                                    ; user(Type 3): line 2
+;      [LOADCASE2]                                                                    ; user(Type 3): line 3
+;      [LOADCASE3]                                                                    ; user(Type 3): line 4
+; NAME=NAME, 2, 4, WS, V, AN, MINS, MAXS, DYF, UI, F, P1, D1, P2, D2, ...             ; user(Type 4)
+; NAME=NAME, 2, 5, INT, bPHI1, PHI1, bPHI2, PHI2                                      ; user(Type 5) 
+;      [VEHICLE1]                                                                     ; user(Type 5): line 2
+;      [VEHICLE2]                                                                     ; user(Type 5): line 3
+;      [VEHICLE3]                                                                     ; user(Type 5): line 4
+; [AF7] : TF1, TF2, TF3, UF1, UF2, UF3, UF4                                           ; adjustment factor
+; [LOAD7] : TL1, TL2, TL3, UL1, UL2, UL3, UL4                                         ; tandem/udl loads
+; [LOADCASE] : bUSE, N, bDF, bUI, PHI, P1, L1, P2, L2, ...                            ; load case
+; [VEHICLE] : bUSE, N, P1, L1, P2, L2, ...                                            ; vehicle
+; if Moving Load Code is RUSSIA
+; NAME=NAME, 1, iTYPE, K, nDYNAFAC, dDYNAFAC, bFATI, nLOADFAC, dLOADFAC               ; standard (SK)
+; NAME=NAME, 1, iTYPE, K, nDYNAFAC, dDYNAFAC, bFATI, nLOADFAC, dLOADFAC               ; standard (SK FATIGUE)
+; NAME=NAME, 1, iTYPE, K, nDYNAFAC, dDYNAFAC, dDYNAFAC_UDL                            
+;                  bFATI, nLOADFAC, dLOADFAC, dLOADFAC_UDL, s1[3], s1_UDL[3]          ; standard (AK)
+; NAME=NAME, 1, iTYPE, K, nDYNAFAC, dDYNAFAC, nLOADFAC, dLOADFAC,                     
+;                  bTWOVEHI, TWOVEHI_FACT, b2NDREDUC, 2NDREDUC_FACT                   ; standard (N14)
+; NAME=NAME, 1, iTYPE, K, nDYNAFAC, dDYNAFAC, nLOADFAC, dLOADFAC,                     
+;                  bTWOVEHI, TWOVEHI_FACT, b2NDREDUC, 2NDREDUC_FACT                   ; standard (N11)
+; NAME=NAME, 1, iTYPE, nDYNAFAC, dDYNAFAC, dEMPTYCAR                                  
+;               bFATI, nLOADFAC, dLOADFAC,                                            ; standard (SUBWAY TRAINS)
+; NAME=NAME, 1, iTYPE, VARIABLE, nDYNAFAC, dDYNAFAC, dEMPTYCAR                        
+;                         bFATI, nLOADFAC, dLOADFAC,                                  ; standard (TRAMCARS)
+; NAME=NAME, 1, iTYPE, nDYNAFAC, dDYNAFAC, bFATI, nLOADFAC, dLOADFAC                  ; standard (NK-80)
+; NAME=NAME, 1, iTYPE, W, D, nDYNAFAC, dDYNAFAC, bFATI, nLOADFAC, dLOADFAC            ; standard (NG-60)
+; NAME=NAME, 1, iTYPE, BRIDGETYPE, W, bFATI, nLOADFAC, dLOADFAC                       ; standard (UNIFORM LOAD)
+; NAME=NAME, 1, iTYPE, BRIDGETYPE, W, bFATI, nLOADFAC, dLOADFAC                       ; standard (UNIFORM LOAD(W/O OTHER LOADS))
+; NAME=NAME, 1, iTYPE, BRIDGETYPE, P                                                  ; standard (CONCENTRATED LOAD (W/O OTHER LOADS))
+; NAME=NAME, 2, iTYPE, W, nDYNAFAC, dDYNAFAC, dDYNAFAC_UDL                            
+;                  bFATI, nLOADFAC, dLOADFAC, dLOADFAC_UDL, s1[3], s1_UDL[3]          ; user (Type 1)
+; NAME=NAME, 2, iTYPE, nDYNAFAC, dDYNAFAC, dEMPTYCAR                                  
+;               bFATI, nLOADFAC, dLOADFAC,                                            ; user (Type 2)
+; NAME=NAME, 2, iTYPE, Variable, nDYNAFAC, dDYNAFAC, dEMPTYCAR                        
+;                         bFATI, nLOADFAC, dLOADFAC,                                  ; user (Type 3)
+; NAME=NAME, 2, iTYPE, nDYNAFAC, dDYNAFAC, nLOADFAC, dLOADFAC								         
+;                         bTWOVEHI, TWOVEHI_FACT, b2NDREDUC, 2NDREDUC_FACT            ; user (Type 4)
+; NAME=NAME, 2, iTYPE, nDYNAFAC, dDYNAFAC, nLOADFAC, dLOADFAC								         
+;                         bTWOVEHI, TWOVEHI_FACT, b2NDREDUC, 2NDREDUC_FACT            ; user (Type 5)
+; NAME=NAME, 2, iTYPE, W, D, nDYNAFAC, dDYNAFAC, bFATI, nLOADFAC, dLOADFAC            ; user (Type 6)
+; NAME=NAME, 2, iTYPE, P, W, bFATI, nLOADFAC, dLOADFAC                                ; user (Type 7)
+; if Moving Load Code is KSCE-LSD15
+; NAME=NAME, 1, TYPE-NAME, nLANETYPE, dDYNAFAC,  CODE, nLANELOAD, L, CONVERTDIST      ; standard
+; NAME=NAME, 2, 8, L1, W1, W2, EXP, dDYNAFAC, nLANELOAD, L, CONVERTDIST               ; user: line 1 (Type 1)
+; NAME=NAME, 2, 1, W1, W2, D1, D2, 0, 0, 0, NO                                        ; user: line 1 (Type 2)
+; NAME=NAME, 2, 6, LOADNUM, DIST, W, L, 0, 0, 0, NO                                   ; user: line 1 (Type 3)
+;      LOAD1, DIST1, (DIST2_1), LOAD2, DIST2, (DIST2_2), ...                          ; user: from line 2
+; if Moving Load Code is South Africa
+; NAME=NAME, 1, TYPE-NAME, CODE, bINCREL, dINCREL                                     ; standard NA
+; NAME=NAME, 1, TYPE-NAME, CODE, UNITNUM                                              ; standard NB
+; NAME=NAME, 1, TYPE-NAME, CODE, OPPOSITE                                             ; standard NC
+; NAME=NAME, 2, TYPE, W1, L, W2, W3, PA, bINCREL, dINCREL                             ; user NA
+; NAME=NAME, 2, TYPE, PB, UNITNUM, DELTA, D1, D2                                      ; user NB
+; NAME=NAME, 2, TYPE, P, OPPOSITE, NUM1, NUM2, NUM3 [DIST1], [DIST2], [DIST3]         ; user NC
+; if Load Type is Permit Truck
+; NAME=NAME, 3, AXLE-TYPE-NUM, IMP-FACTOR                                             ; user(Permit Truck)
+;      AXLE-TYPE-NAME1, bEDWL1, bSV1, P1, D1, P2, D2, ..., Pn, Dn                     ; user(from line 2)
+;      ...                                                                           
+;      AXLE-TYPE-NAMEn, bEDWLn, bSVn, P1, D1, P2, D2, ..., Pn, Dn                    
+;      AXLE-TYPE1, SPACING1, bVS1, AXLE-TYPE2, SPACING2, bVS2 ...                     ; line 2+AXLE-TYPE-NUM
+; if Moving Load Code is not one of those specified above.
+; NAME=NAME, 1, TYPE-NAME, DLA, CODE                                                  ; standard
+; NAME=NAME, 2, bTRAIN, W(W1), PL(D1), PLM(W2), PLV(D2), NDIST                        ; user: line 1
+;      LOAD1, DIST1, LOAD2, DIST2, ...                                                ; user: from line 2
+   NAME=DT XCMG 8x4 65 t, 2, NO, 0, 0, 0, 0, 0
+        9.50376, 1950, 9.50376, 3750, 23.0048, 1450, 23.0048, 1450
+   NAME=TK CAT 777 100 t, 2, NO, 0, 0, 0, 0, 0
+        33.0113, 4570, 67.0229, 4570
+   NAME=TT TRUK T SNI 500 kN, 2, NO, 0, 0, 0, 0, 0
+        5.09858, 5000, 22.9436, 4000, 22.9436, 4000
+
+
+*MVLDCASE
+; NAME=NAME, nLCTYPE, SCALE1, SCALE2, SCALE3, SCALE4, SCALE5, SCALE6, COMB, DESC, LCOM, SERIAL   ; 1st line
+;      nLTYPE, 2LFACTOR1, 2LFACTOR2, 3LFACTOR1, 3LFACTOR2, 3LFACTOR3, 3LFACTOR4                  ; 2st line
+;      TYPE1, VCLASS1, SCALE1, iMIN1, iMAX1, LANE11, LANE12, ...                                 ; 3nd line
+;      ...                                                                                       ; ...
+;      TYPEn, VCLASSn, SCALEn, iMINn, iMAXn, LANEn1, LANEn2, ...                                 ; n+1th line
+; NAME=NAME, nLCTYPE, VEHICLE, REFLANE, ECCEN, SCALE, DESC                                       ; Permit
+; NAME=NAME, nLCTYPE, DESC, bOPTIM, SUBLANEW, MINSPACING, MARGIN, LANE, MINNUM, MAXNUM, SERIAL   ; Traffic Lane Optimization
+;      TYPE1, VCLASS1, SCALE1...                                                                 ; Traffic Lane Optimization 1st line
+;      ...                                                                                       ; Traffic Lane Optimization ...
+;      TYPEn, VCLASSn, SCALEn...                                                                 ; Traffic Lane Optimization n+1th line
+   NAME=MVL, 0, 1.2, 1, 0.85, 0.65, 0.65, 0.65, INDEPENDENT, , 0, 1
+        1, 1, 1, 1, 1, 0.5, 0.25
+        VL, TT TRUK T SNI 500 kN, 1, 0, 1, Lajur 1, Lajur 2
+
+
+*DGN-MATL
+; iMAT, TYPE, MNAME, [DATA1]                                    ; STEEL
+; iMAT, TYPE, MNAME, [DATA2], [R-DATA], FCI, bSERV, SHORT, LONG ; CONC
+; iMAT, TYPE, MNAME, [DATA3], [DATA2], [R-DATA]                 ; SRC
+; iMAT, TYPE, MNAME, [DATA5]                                    ; STEEL(None) & KSCE-ASD05
+; [DATA1] : 1, DB, CODE, NAME or 2, ELAST, POISN, FU, FY1, FY2, FY3, FY4
+;           FY5, FY6, AFT, AFT2, AFT3, FY, AFV, AFV2, AFV3
+; [DATA2] : 1, DB, CODE, NAME or 2, FC, CHK, LAMBDA
+; [DATA3] : 1, DB, CODE, NAME or 2, ELAST, FU, FY1, FY2, FY3, FY4
+;              FY5, FY6, AFT, AFT2, AFT3, FY, AFV, AFV2, AFV3
+; [DATA4] : 1, DB, CODE, NAME or 2, FC
+; [DATA5] : 3, ELAST, POISN, AL1, AL2, AL3, AL4, AL5, AL6, AL7, AL8, AL9, AL10
+;              MIN1, MIN2, MIN3
+; [R-DATA]: RBCODE, RBMAIN, RBSUB, FY(R), FYS
+    1, STEEL, SM490YB           , 2, 2.0904e+001,   0.3, 0.0499660944359185, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0.0361999255607165, 0, 0, 0, 0.0361999255607165, 0, 0, 0, 0, 2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,
+    2, STEEL, SS400             , 2, 2.0904e+001,   0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,
+
+
+; ---- mulai di sini satuan pindah ke KN, M khusus untuk DATA BEBAN ----
+
 *ENDDATA
