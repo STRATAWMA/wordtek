@@ -30,7 +30,7 @@ A("*STLDCASE")
 A("; LCNAME, LCTYPE, DESC")
 for n,t,d in [("MS","D","Berat sendiri - baja (selfweight) + plat lantai beton 250 mm"),
  ("MA","D","Beban mati tambahan - topping trotoar 100 mm + sandaran + aspal 50 mm"),
- ("TD-BTR","L","Beban lajur D - BTR q = 5.85 kPa (SNI 1725 ps.8.3.1, L=100 m)"),
+ ("TD-BTR","L","Beban lajur D - BTR q = 5.85 kPa (SNI 1725 ps.8.3.1 - L=100 m)"),
  ("TD-BGT","L","Beban lajur D - BGT p = 49 x (1+FBD 0.30) = 63.7 kN/m"),
  ("TP","L","Beban pejalan kaki 5 kPa pada trotoar (SNI 1725 ps.8.9)"),
  ("EWS","W","Angin pada struktur PD = 2.4 kPa (SNI 1725 ps.9.6.1.1)"),
@@ -38,8 +38,8 @@ for n,t,d in [("MS","D","Berat sendiri - baja (selfweight) + plat lantai beton 2
  ("EWV","W","Angin vertikal 0.96 kPa x 7.6 m ke atas (SNI 1725 ps.9.6.2)"),
  ("EUN","T","Suhu seragam naik dT = +15 C (SNI 1725 Tabel 18)"),
  ("EUN-N","T","Suhu seragam turun dT = -15 C (SNI 1725 Tabel 18)"),
- ("EQX","E","Gempa memanjang statik ekuivalen Csm/R = %.3f (SNI 2833, Dili)"%R['coef']),
- ("EQY","E","Gempa melintang statik ekuivalen Csm/R = %.3f (SNI 2833, Dili)"%R['coef'])]:
+ ("EQX","E","Gempa memanjang statik ekuivalen Csm/R = %.3f (SNI 2833 - Dili)"%R['coef']),
+ ("EQY","E","Gempa melintang statik ekuivalen Csm/R = %.3f (SNI 2833 - Dili)"%R['coef'])]:
     A("   %-7s, %s, %s"%(n,t,d))
 
 def bl(els,p,dr="GZ",sign=-1):
