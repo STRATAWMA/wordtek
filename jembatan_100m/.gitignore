@@ -1,0 +1,5 @@
+# berkas antara, dibangun ulang oleh parse.py / calc.py / build.py
+geom.json
+res.json
+fix.json
+__pycache__/
