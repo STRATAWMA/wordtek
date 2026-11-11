@@ -47,21 +47,6 @@
      0, 1, 1, NO, YES, 9810, 0, NO, NO, NO
 
 
-;==========================================================================
-; PENGAMAN MODEL KOSONG
-; midas menolak *REBAR-MATL-CODE bila model sudah berisi node atau penampang.
-; Blok ini sengaja dipasang sebagai PENDETEKSI:
-;
-;   Muncul error "REBAR-MATL-CODE cannot be executed when nodes or sections
-;   are included in the model"  ->  MODEL BELUM KOSONG. HENTIKAN.
-;   Beban akan bertumpuk. Lakukan File > New lalu Run ulang file ini.
-;
-; Tidak muncul error  ->  model bersih, beban dijamin tidak bertumpuk.
-; Blok ini sendiri tidak berpengaruh pada jembatan baja (hanya kode tulangan).
-;==========================================================================
-*REBAR-MATL-CODE
-; CONC_CODE, CONC_MDB, SRC_CODE, SRC_MDB
- ASTM(RC), Grade 60, ASTM(RC), Grade 60
 
 *UNIT
    TONF, MM, BTU, C

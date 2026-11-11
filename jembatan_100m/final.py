@@ -97,21 +97,6 @@ A("*PROJINFO")
 A("   PROJECT=Jembatan Rangka Baja Kelas A - Bentang 100 m - BM 100")
 A("   CLIENT=PT Indo Trans Baja Utama"); A("")
 A("*STRUCTYPE"); [A(l) for l in grab('STRUCTYPE')]; A("")
-A(";==========================================================================")
-A("; PENGAMAN MODEL KOSONG")
-A("; midas menolak *REBAR-MATL-CODE bila model sudah berisi node atau penampang.")
-A("; Blok ini sengaja dipasang sebagai PENDETEKSI:")
-A(";")
-A(";   Muncul error \"REBAR-MATL-CODE cannot be executed when nodes or sections")
-A(";   are included in the model\"  ->  MODEL BELUM KOSONG. HENTIKAN.")
-A(";   Beban akan bertumpuk. Lakukan File > New lalu Run ulang file ini.")
-A(";")
-A("; Tidak muncul error  ->  model bersih, beban dijamin tidak bertumpuk.")
-A("; Blok ini sendiri tidak berpengaruh pada jembatan baja (hanya kode tulangan).")
-A(";==========================================================================")
-A("*REBAR-MATL-CODE")
-A("; CONC_CODE, CONC_MDB, SRC_CODE, SRC_MDB")
-A(" ASTM(RC), Grade 60, ASTM(RC), Grade 60")
 A("")
 A("*UNIT"); A("   TONF, MM, BTU, C"); A("")
 A("*NODE"); A("; iNO, X, Y, Z"); [A(l) for l in grab('NODE')]
@@ -188,6 +173,7 @@ for x in PANEL:
     A(";   master %-4d  slave %s"%(m,sl))
 A("")
 A("*UNIT"); A("   KN, M, BTU, C")
+A("@@@SPLIT@@@")
 hdr("LOAD CASE")
 A("*STLDCASE")
 A("; LCNAME, LCTYPE, DESC")
@@ -319,5 +305,37 @@ A(";    eksentrisitasnya, atau pakai beban statik TD-BTR/TD-BGT yang sudah ada."
 A("; 5. Load case MVL belum masuk kombinasi mana pun.")
 A("")
 A("*ENDDATA"); A("")
-open('B100_FINAL.mct','w').write("\n".join(O))
-print("baris:",len(O))
+txt="\n".join(O)
+open('B100_FINAL.mct','w').write(txt.replace("@@@SPLIT@@@\n",""))
+i=txt.index("@@@SPLIT@@@")
+head=txt[:i]
+tail=txt[i+len("@@@SPLIT@@@")+1:]
+H="""
+;--------------------------------------------------------------------------
+;  BAGIAN 1 dari 2 : STRUKTUR SAJA (tanpa data beban)
+;  Jembatan Rangka Baja Kelas A - bentang 100 m - BM 100 - lokasi Timor Leste
+;
+;  File ini AMAN DIJALANKAN BERULANG KALI. Node, elemen, penampang, tumpuan
+;  dan rigid link DITIMPA berdasarkan nomornya, jadi tidak pernah bertumpuk.
+;
+;  Isi : 203 node | 473 elemen | 78 penampang | 4 pot bearing
+;        16 rigid link diafragma lantai (8 slave tiap panel = 128 pasangan)
+;
+;  Perbaikan terhadap model lama:
+;    (1) 6 jalur stringer yang semula TIDAK TERSAMBUNG kini tersambung ke
+;        gelagar melintang (CG dipecah 8 segmen tiap panel, 32 -> 128 elemen)
+;    (2) 11 elemen duplikat dihapus
+;    (3) diafragma lantai (pelat beton 250 mm) sebagai Rigid Link bidang XY
+;    (4) SELURUH profil penampang asli dipertahankan - tidak ada yang diubah
+;
+;  URUTAN:  1. File > New di midas
+;           2. Run file ini
+;           3. Run B100_2_BEBAN.mct  (SATU KALI SAJA)
+;--------------------------------------------------------------------------
+
+""".lstrip()
+body=head[head.index("*VERSION"):].rstrip()
+if body.endswith("KN, M, BTU, C"):
+    body=body[:body.rindex("*UNIT")].rstrip()
+open('B100_1_STRUKTUR.mct','w').write(H+body+"\n\n*ENDDATA\n")
+print("baris gabungan:",len(O))

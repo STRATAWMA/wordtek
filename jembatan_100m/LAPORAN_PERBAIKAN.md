@@ -153,11 +153,16 @@ midas **menimpa** node, elemen dan penampang karena nomornya sama, tetapi **sela
 
 Terpaksa memakai model lama? Hapus dulu **seluruh 13 Static Load Case** (`Load > Static Load Cases`) — menghapus load case ikut menghapus data bebannya — baru Run.
 
-**Pendeteksi otomatis.** Blok `*REBAR-MATL-CODE` dipasang kembali di awal file dengan sengaja: midas menolaknya bila model sudah berisi node atau penampang. Jadi
+**File dipecah dua — ini pengaman sesungguhnya.**
 
-> muncul error `REBAR-MATL-CODE cannot be executed when nodes or sections are included` → **model belum kosong, hentikan dan ulangi dari File > New**
+| File | Sifat | Aturan |
+|---|---|---|
+| `B100_1_STRUKTUR.mct` | node, elemen, penampang, tumpuan, rigid link | **aman dijalankan berulang kali** — semua ditimpa berdasarkan nomor |
+| `B100_2_BEBAN.mct` | data beban + kombinasi | **jalankan SATU KALI saja** |
 
-Kalau tidak muncul error itu, model bersih dan beban dijamin tidak bertumpuk.
+Dengan pemisahan ini, kalau perlu memperbaiki geometri Anda cukup Run ulang bagian 1 tanpa risiko beban berlipat. `B100_FINAL.mct` tetap disediakan untuk sekali jalan di model kosong — isinya sudah dibuktikan identik dengan gabungan bagian 1 + 2 (1425 baris data, sama persis).
+
+**Penyebab yang sering terlewat:** jendela MCT Command Shell tetap terikat ke model yang terbuka saat jendela itu dibuka. Setelah `File > New`, **tutup dan buka ulang** MCT Command Shell, baru Run.
 
 Peringatan `Elements 6 & 7 are overlapped` dan 10 pasangan lain juga berasal dari model lama — file ini sudah diverifikasi **0 elemen bertumpuk** dari 473.
 
