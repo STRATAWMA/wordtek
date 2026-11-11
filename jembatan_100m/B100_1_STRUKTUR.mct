@@ -1266,25 +1266,33 @@
 ; Tanpa ini gaya horizontal bidang lantai terpaksa dipikul lentur sumbu lemah
 ; gelagar melintang -> Mz palsu sampai 630 kNm dan ikatan angin kelebihan beban.
 ; Field 1 adalah NOMOR URUT, bukan master. Urutan: iNO, MASTER, DOF, SLAVE_LIST
-; DOF 110001 = Dx, Dy, Rz  (di GUI midas: Rigid Link tipe Plane XY)
+; DOF 010001 = Dy + Rz saja.
+; PENTING - Dx SENGAJA TIDAK DIKEKANG. Lantai berada pada z=0, yaitu
+; setinggi chord bawah. Bila Dx ikut dikekang, setiap stringer dipaksa
+; memanjang persis seperti chord bawah, sehingga ikut memikul gaya
+; aksial chord (regangan 0.0015 -> sekitar 1550 kN pada ST2 dan 2200 kN
+; pada ST1). Stringer jadi NG padahal ia hanya balok lantai antar cross
+; girder, bukan batang chord. Mengekang Dy dan Rz saja tetap memberi
+; kekakuan diafragma lantai untuk menyebar beban angin dan gempa ke
+; kedua rangka, tanpa gandengan memanjang yang palsu itu.
 *RIGIDLINK
 ; iNO, MASTER_NODE, DOF, S_NODE_LIST, GROUP
-   1, 1, 110001, 175 159 143 79 95 111 127 48, 
-   2, 2, 110001, 176 160 144 80 96 112 128 49, 
-   3, 3, 110001, 177 161 145 81 97 113 129 50, 
-   4, 4, 110001, 178 162 146 82 98 114 130 51, 
-   5, 5, 110001, 179 163 147 83 99 115 131 52, 
-   6, 6, 110001, 180 164 148 84 100 116 132 53, 
-   7, 7, 110001, 181 165 149 85 101 117 133 54, 
-   8, 8, 110001, 182 166 150 86 102 118 134 55, 
-   9, 9, 110001, 190 174 158 87 110 126 142 63, 
-   10, 10, 110001, 189 173 157 88 109 125 141 62, 
-   11, 11, 110001, 188 172 156 89 108 124 140 61, 
-   12, 12, 110001, 187 171 155 90 107 123 139 60, 
-   13, 13, 110001, 186 170 154 91 106 122 138 59, 
-   14, 14, 110001, 185 169 153 92 105 121 137 58, 
-   15, 15, 110001, 184 168 152 93 104 120 136 57, 
-   16, 16, 110001, 183 167 151 94 103 119 135 56, 
+   1, 1, 010001, 175 159 143 79 95 111 127 48, 
+   2, 2, 010001, 176 160 144 80 96 112 128 49, 
+   3, 3, 010001, 177 161 145 81 97 113 129 50, 
+   4, 4, 010001, 178 162 146 82 98 114 130 51, 
+   5, 5, 010001, 179 163 147 83 99 115 131 52, 
+   6, 6, 010001, 180 164 148 84 100 116 132 53, 
+   7, 7, 010001, 181 165 149 85 101 117 133 54, 
+   8, 8, 010001, 182 166 150 86 102 118 134 55, 
+   9, 9, 010001, 190 174 158 87 110 126 142 63, 
+   10, 10, 010001, 189 173 157 88 109 125 141 62, 
+   11, 11, 010001, 188 172 156 89 108 124 140 61, 
+   12, 12, 010001, 187 171 155 90 107 123 139 60, 
+   13, 13, 010001, 186 170 154 91 106 122 138 59, 
+   14, 14, 010001, 185 169 153 92 105 121 137 58, 
+   15, 15, 010001, 184 168 152 93 104 120 136 57, 
+   16, 16, 010001, 183 167 151 94 103 119 135 56, 
 
 ; JIKA 16 baris di atas MASIH error parsing, hapus saja blok *RIGIDLINK ini lalu
 ; buat lewat GUI: Model > Boundaries > Rigid Link, Typical Type = Plane XY,

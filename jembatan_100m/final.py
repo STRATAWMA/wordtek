@@ -149,12 +149,20 @@ A("; gelagar melintang -> Mz palsu sampai 630 kNm dan ikatan angin kelebihan beb
 
 YF=[0.0,500.0,1600.0,2700.0,3800.0,4900.0,6000.0,7100.0,7600.0]
 A("; Field 1 adalah NOMOR URUT, bukan master. Urutan: iNO, MASTER, DOF, SLAVE_LIST")
-A("; DOF 110001 = Dx, Dy, Rz  (di GUI midas: Rigid Link tipe Plane XY)")
+A("; DOF 010001 = Dy + Rz saja.")
+A("; PENTING - Dx SENGAJA TIDAK DIKEKANG. Lantai berada pada z=0, yaitu")
+A("; setinggi chord bawah. Bila Dx ikut dikekang, setiap stringer dipaksa")
+A("; memanjang persis seperti chord bawah, sehingga ikut memikul gaya")
+A("; aksial chord (regangan 0.0015 -> sekitar 1550 kN pada ST2 dan 2200 kN")
+A("; pada ST1). Stringer jadi NG padahal ia hanya balok lantai antar cross")
+A("; girder, bukan batang chord. Mengekang Dy dan Rz saja tetap memberi")
+A("; kekakuan diafragma lantai untuk menyebar beban angin dan gempa ke")
+A("; kedua rangka, tanpa gandengan memanjang yang palsu itu.")
 A("*RIGIDLINK")
 A("; iNO, MASTER_NODE, DOF, S_NODE_LIST, GROUP")
 for _i,x in enumerate(PANEL,1):
     m=bxf[x][0.0]; sl=" ".join(str(bxf[x][y]) for y in YF[1:])
-    A("   %d, %d, 110001, %s, "%(_i,m,sl))
+    A("   %d, %d, 010001, %s, "%(_i,m,sl))
 A("")
 A("; JIKA 16 baris di atas MASIH error parsing, hapus saja blok *RIGIDLINK ini lalu")
 A("; buat lewat GUI: Model > Boundaries > Rigid Link, Typical Type = Plane XY,")
@@ -242,20 +250,32 @@ CGSEG=[(0,500),(500,1600),(1600,2700),(2700,3800),(3800,4900),(4900,6000),
 CGE={x:{seg:416+8*i+j for j,seg in enumerate(CGSEG)} for i,x in enumerate(CGX)}
 # fraksi lebar tiap segmen yang terbebani (lajur 0.8..6.8 m; BTR 100% pada
 # 5.5 m tengah 1.05..6.55, 50% pada sisanya -> lebar efektif total 5.75 m)
-FR_BTR={(500,1600):0.675/1.1,(1600,2700):1.0,(2700,3800):1.0,(3800,4900):1.0,
-        (4900,6000):1.0,(6000,7100):0.675/1.1}
-FR_TP ={(0,500):1.0,(7100,7600):1.0}
+# Beban lajur HANYA pada lebar jalan bersih y = 0.80 .. 6.80 m. Segmen tepi
+# dibebani sebagian (D1..D2 relatif) supaya TIDAK ADA beban kendaraan yang
+# jatuh di daerah trotoar (y<0.80 m dan y>6.80 m).
+#   seg (500,1600): y 800..1050 -> 50% BTR ; y 1050..1600 -> 100% BTR
+#   seg (6000,7100): y 6000..6550 -> 100% ; y 6550..6800 -> 50% ; >6800 nol
+FR_BTR={(1600,2700):[(0.0,1.0,1.0)],(2700,3800):[(0.0,1.0,1.0)],
+        (3800,4900):[(0.0,1.0,1.0)],(4900,6000):[(0.0,1.0,1.0)],
+        (500,1600):[(300/1100,550/1100,0.5),(550/1100,1.0,1.0)],
+        (6000,7100):[(0.0,550/1100,1.0),(550/1100,800/1100,0.5)]}
+FR_TP ={(0,500):[(0.0,1.0,1.0)],(7100,7600):[(0.0,1.0,1.0)]}
 LTRIB={x:(P['a']/2 if x in (CGX[0],CGX[-1]) else P['a']) for x in CGX}
 XBGT=46666                       # cross girder terdekat ke tengah bentang
+def blp(els,p,d1,d2,dr="GZ",sg=-1):
+    """UNILOAD parsial: hanya pada bagian d1..d2 (relatif) dari batang"""
+    return ("   %s, BEAM, UNILOAD, %s, NO, NO, LZ, 0, 0, NO, 0, "
+            "%.4f, %.4f, %.4f, %.4f, 0, 0, 0, 0, "%(els,dr,d1,sg*p,d2,sg*p))
 def cgload(frmap,q,scale_by_trib):
-    """kumpulkan {intensitas: [elemen]} lalu keluarkan sebagai BEAMLOAD"""
+    """kumpulkan {(d1,d2,intensitas): [elemen]} lalu keluarkan sebagai BEAMLOAD"""
     import collections as _c
     d=_c.defaultdict(list)
     for x in CGX:
         t=LTRIB[x] if scale_by_trib else 1.0
-        for seg,fr in frmap.items():
-            d[round(q*t*fr,4)].append(CGE[x][seg])
-    for v in sorted(d,reverse=True): A(bl(rng(d[v]),v))
+        for seg,parts in frmap.items():
+            for d1,d2,fr in parts:
+                d[(round(d1,4),round(d2,4),round(q*t*fr,4))].append(CGE[x][seg])
+    for k in sorted(d,key=lambda z:(-z[2],z[0])): A(blp(rng(d[k]),k[2],k[0],k[1]))
 blk('TD-BTR'); A("*BEAMLOAD")
 A("; BTR 5.85 kPa x panjang tributari cross girder (6.6665 m; ujung 3.333 m)")
 cgload(FR_BTR,R['qBTR'],True)
@@ -263,8 +283,10 @@ blk('TD-BGT'); A("*BEAMLOAD")
 A("; BGT 49 x (1+0.30) = 63.7 kN/m, garis pisau pada cross girder x=46.666 m")
 import collections as _cc
 _d=_cc.defaultdict(list)
-for seg,fr in FR_BTR.items(): _d[round(R['qBGT']*fr,4)].append(CGE[XBGT][seg])
-for v in sorted(_d,reverse=True): A(bl(rng(_d[v]),v))
+for seg,parts in FR_BTR.items():
+    for d1,d2,fr in parts:
+        _d[(round(d1,4),round(d2,4),round(R['qBGT']*fr,4))].append(CGE[XBGT][seg])
+for k in sorted(_d,key=lambda z:(-z[2],z[0])): A(blp(rng(_d[k]),k[2],k[0],k[1]))
 blk('TB1')
 A("; 250 kN dibagi 2 chord bawah = %.4f kN/m ; kopel vertikal +/- %.3f kN"%(R['TB_tot']/2/P['L'],R['TB_V']))
 A("*BEAMLOAD")
