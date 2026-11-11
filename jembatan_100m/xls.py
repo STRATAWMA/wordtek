@@ -37,7 +37,7 @@ rows=[
  ("Tebal plat lantai beton",P['tslab'],"m","t_slab","Data pengguna = 25 cm"),
  ("Tebal trotoar (total)",P['ttrot'],"m","t_trot","Data pengguna = 35 cm"),
  ("Tebal lapis aspal (+ overlay)",P['tasp'],"m","t_asp","SNI 1725-2016 Tabel 3 (50 mm + overlay)"),
- ("Berat isi beton bertulang",P['gc'],"kN/m3","gam_c","SNI 1725-2016 Tabel 1"),
+ ("Berat isi beton bertulang",P['gc'],"kN/m3","gam_c","SNI 1725-2016 Tabel 1 - sama dengan perencana"),
  ("Berat isi aspal beton",P['gasp'],"kN/m3","gam_asp","SNI 1725-2016 Tabel 1"),
  ("Berat isi baja",P['gs'],"kN/m3","gam_s","SNI 1725-2016 Tabel 1"),
  ("Berat sandaran/railing per sisi",P['wrail'],"kN/m","w_rail","Asumsi pipa + tiang"),
@@ -63,14 +63,16 @@ rows=[
  ("Tinggi kerja EWl di atas lantai",P['hEWL'],"m","h_EWL","SNI 1725-2016 ps. 9.6.1.2"),
  ("SUHU",None,None,None,None),
  ("Perubahan suhu seragam dT",P['dT'],"C","dT","SNI 1725-2016 Tabel 18 (15-40 C)"),
- ("GEMPA - TIMOR LESTE (Dili)",None,None,None,None),
- ("PGA batuan dasar",P['PGA'],"g","PGA","Peta hazard regional Dili - ASUMSI, verifikasi"),
- ("Ss (perioda pendek 0.2 s)",P['Ss'],"g","S_s","ASUMSI, verifikasi studi situs"),
- ("S1 (perioda 1.0 s)",P['S1'],"g","S_1","ASUMSI, verifikasi studi situs"),
- ("FPGA (kelas situs SE)",P['Fpga'],"-","F_pga","SNI 2833-2016 Tabel 3"),
- ("Fa (kelas situs SE)",P['Fa'],"-","F_a","SNI 2833-2016 Tabel 4"),
- ("Fv (kelas situs SE)",P['Fv'],"-","F_v","SNI 2833-2016 Tabel 5"),
- ("R - faktor modifikasi respons",P['Req'],"-","R_eq","SNI 2833-2016 Tabel 12 (R=1 sambungan/elastis)"),
+ ("GEMPA - sesuai presentasi perencana (zona 3, tanah sedang)",None,None,None,None),
+ ("PGA batuan dasar",P['PGA'],"g","PGA","Presentasi perencana - Peta Gempa 2017, ulang 1000 th"),
+ ("Ss (perioda pendek 0.2 s)",P['Ss'],"g","S_s","Presentasi perencana"),
+ ("S1 (perioda 1.0 s)",P['S1'],"g","S_1","Presentasi perencana"),
+ ("FPGA (tanah sedang / SD)",P['Fpga'],"-","F_pga","dari As 0.433 / PGA 0.39 - presentasi perencana"),
+ ("Fa (tanah sedang / SD)",P['Fa'],"-","F_a","dari SDS 0.918 / Ss 0.77 - presentasi perencana"),
+ ("Fv (tanah sedang / SD)",P['Fv'],"-","F_v","dari SD1 0.470 / S1 0.247 - presentasi perencana"),
+ ("R - faktor modifikasi respons",P['Req'],"-","R_eq","Struktur atas R=1 - presentasi perencana"),
+ ("Perioda ragam 1 - longitudinal",P['TX'],"s","T_X","Eigenvalue perencana, mode 2 (100% massa X)"),
+ ("Perioda ragam 1 - transversal",P['TY'],"s","T_Y","Eigenvalue perencana, mode 1 (99.4% massa Y)"),
 ]
 r=5;no=0
 for nm,val,un,key,ref in rows:
@@ -122,12 +124,12 @@ ws.cell(16,1,"Berat baja termodel (dari file MCT) = %.1f kN = %.2f kN/m bentang 
 
 # ================= 3-MA =================
 ws=wb.create_sheet("3-MA-MATI-TAMBAHAN")
-title(ws,"3. BEBAN MATI TAMBAHAN (MA) - TROTOAR 350 mm, ASPAL, SANDARAN","Trotoar 350 mm = plat 250 mm + topping/kerb 100 mm. Hanya selisih 100 mm yang masuk MA (250 mm sudah dihitung di MS).")
-for i,(lb,fm,un) in enumerate([("Topping trotoar = (t_trot - t_slab) x gam_c x W_trot",'=(t_trot-t_slab)*gam_c*W_trot',"kN/m per sisi"),
+title(ws,"3. BEBAN MATI TAMBAHAN (MA) - TROTOAR 350 mm, ASPAL, SANDARAN","Mengikuti konvensi presentasi perencana: beban trotoar dihitung dengan TEBAL PENUH dan DITAMBAHKAN di atas beban plat (konservatif).")
+for i,(lb,fm,un) in enumerate([("Trotoar = t_trot x gam_c x W_trot (tebal penuh, konvensi perencana)",'=t_trot*gam_c*W_trot',"kN/m per sisi"),
                                ("Sandaran / railing",'=w_rail',"kN/m per sisi"),
                                ("q aspal = t_asp x gam_asp",'=t_asp*gam_asp',"kN/m2")]):
     r=4+i; ws.cell(r,1,lb); ws.cell(r,5,fm).fill=FO; ws.cell(r,5).number_format='0.000'; ws.cell(r,6,un)
-hdr(ws,8,["Stringer","Tepi?","Topping trot (kN/m)","Sandaran (kN/m)","b aspal (m)","Aspal (kN/m)","w MA total (kN/m)"],[10,8,19,16,12,14,18])
+hdr(ws,8,["Stringer","Tepi?","Trotoar (kN/m)","Sandaran (kN/m)","b aspal (m)","Aspal (kN/m)","w MA total (kN/m)"],[10,8,19,16,12,14,18])
 for i,y in enumerate(YS):
     r=9+i
     ws.cell(r,1,"ST-%d"%(i+1)); ws.cell(r,2,"='1-TRIBUTARI'!C%d"%(5+i))
@@ -137,7 +139,7 @@ for i,y in enumerate(YS):
     for j in range(1,8): ws.cell(r,j).border=B; ws.cell(r,j).number_format='0.000'
 ws.cell(16,2,"TOTAL")
 for j in (3,4,6,7): ws.cell(16,j,"=SUM(%s9:%s15)"%(get_column_letter(j),get_column_letter(j))).font=Font(bold=True); ws.cell(16,j).number_format='0.00'
-ws.cell(18,1,"Cek: topping 2x1.20=2.40 ; sandaran 2x0.50=1.00 ; aspal 6.0x1.10=6.60 -> MA total = 10.00 kN/m").font=Font(italic=True,size=9)
+ws.cell(18,1,"Perencana: plat 262 mm x 25 = 6.54 kPa ; trotoar 300 mm x 25 = 7.50 kPa ; aspal 50 mm x 22 = 1.10 kPa (identik)").font=Font(italic=True,size=9)
 
 # ================= 4-TD =================
 ws=wb.create_sheet("4-TD-LAJUR-D")
@@ -246,50 +248,85 @@ ws.cell(14,1,"Input midas: *ELTEMPER seluruh elemen, EUN = +15 C (naik) dan EUN-
 
 # ================= 7-GEMPA =================
 ws=wb.create_sheet("7-GEMPA")
-title(ws,"7. BEBAN GEMPA (SNI 2833-2016) - LOKASI TIMOR LESTE (DILI)","Metode beban statik ekuivalen. PERINGATAN: PGA/Ss/S1 adalah ASUMSI hazard regional Dili - WAJIB diganti hasil studi hazard situs.")
-ws.column_dimensions['A'].width=62
-L7=[("PARAMETER SPEKTRUM",None,None),
- ("PGA batuan dasar",'=PGA',"g"),("Ss",'=S_s',"g"),("S1",'=S_1',"g"),
- ("FPGA (situs SE)",'=F_pga',"-"),("Fa (situs SE)",'=F_a',"-"),("Fv (situs SE)",'=F_v',"-"),
- ("As = FPGA x PGA",'=E5*E8',"g"),("SDS = Fa x Ss",'=E9*E6',"g"),("SD1 = Fv x S1",'=E10*E7',"g"),
- ("Ts = SD1 / SDS",'=E13/E12',"s"),("T0 = 0.2 x Ts",'=0.2*E14',"s"),
- ("Csm (diambil plateau, T <= Ts) = SDS",'=E12',"-"),
- ("R faktor modifikasi respons",'=R_eq',"-"),
- ("KOEFISIEN GEMPA = Csm / R",'=E16/E17',"-"),
- ("BERAT PERMANEN (per m bentang)",None,None),
- ("Plat lantai = B_as x t_slab x gam_c",'=B_as*t_slab*gam_c',"kN/m"),
- ("Topping trotoar = 2 x (t_trot-t_slab) x gam_c x W_trot",'=2*(t_trot-t_slab)*gam_c*W_trot',"kN/m"),
- ("Aspal = W_road x t_asp x gam_asp",'=W_road*t_asp*gam_asp',"kN/m"),
- ("Sandaran = 2 x w_rail",'=2*w_rail',"kN/m"),
- ("Baja termodel = W_steel / L",'=W_steel/L_span',"kN/m"),
- ("W permanen total per m",'=SUM(E20:E24)',"kN/m"),
- ("W permanen total",'=E25*L_span',"kN"),
- ("GAYA GEMPA",None,None),
- ("EQ total (arah X maupun Y) = koef x W",'=E18*E26',"kN"),
- ("  berat dek per m (plat+trotoar+aspal+sandaran)",'=SUM(E20:E23)',"kN/m"),
- ("  gaya gempa dek per m",'=E18*E29',"kN/m"),
- ("  gaya gempa baja per m",'=E18*E24',"kN/m"),
- ("  porsi baja ke chord BAWAH 55% (tiap sisi)",'=E31*0.55/2',"kN/m"),
- ("  porsi baja ke chord ATAS 45% (tiap sisi, panjang L_tc)",'=E31*0.45/2*L_span/L_tc',"kN/m"),
-]
-r=4
-for lb,fm,un in L7:
-    if fm is None:
-        c=ws.cell(r,1,lb); c.font=Font(bold=True,color="1F4E78"); c.fill=PatternFill("solid",fgColor="DDEBF7")
-        ws.merge_cells(start_row=r,start_column=1,end_row=r,end_column=6); r+=1; continue
-    ws.cell(r,1,lb); ws.cell(r,5,fm).fill=FO; ws.cell(r,5).number_format='0.0000'; ws.cell(r,6,un); r+=1
-hdr(ws,36,["Stringer","b plat (m)","EQ pada stringer (kN/m)"],[10,13,24])
+title(ws,"7. BEBAN GEMPA (SNI 2833-2016) - METODE SPEKTRUM RESPONS","Metode dan kelas situs mengikuti pemaparan perencana (tanah sedang, R=1, Csm dari spektrum pada perioda aktual). HANYA parameter hazard yang diganti ke Timor Leste.")
+ws.column_dimensions['A'].width=64
+RW={}
+r=[4]
+def row(lb,fm,un,key=None,hdr2=False):
+    i=r[0]
+    if hdr2:
+        c=ws.cell(i,1,lb); c.font=Font(bold=True,color="1F4E78"); c.fill=PatternFill("solid",fgColor="DDEBF7")
+        ws.merge_cells(start_row=i,start_column=1,end_row=i,end_column=6); r[0]+=1; return
+    ws.cell(i,1,lb); c=ws.cell(i,5,fm); c.fill=FO; c.number_format='0.0000'; ws.cell(i,6,un)
+    if key: RW[key]=i
+    r[0]+=1; return i
+E=lambda k:"E%d"%RW[k]
+row("PARAMETER HAZARD - LOKASI TIMOR LESTE",None,None,hdr2=True)
+row("PGA batuan dasar",'=PGA',"g","PGA")
+row("Ss",'=S_s',"g","Ss"); row("S1",'=S_1',"g","S1")
+row("FPGA (tanah sedang / SD)",'=F_pga',"-","Fpga")
+row("Fa (tanah sedang / SD)",'=F_a',"-","Fa")
+row("Fv (tanah sedang / SD)",'=F_v',"-","Fv")
+row("As = FPGA x PGA",'=%s*%s'%(E('Fpga'),E('PGA')),"g","As")
+row("SDS = Fa x Ss",'=%s*%s'%(E('Fa'),E('Ss')),"g","SDS")
+row("SD1 = Fv x S1",'=%s*%s'%(E('Fv'),E('S1')),"g","SD1")
+row("Ts = SD1 / SDS",'=%s/%s'%(E('SD1'),E('SDS')),"s","Ts")
+row("T0 = 0.2 x Ts",'=0.2*%s'%E('Ts'),"s","T0")
+row("SPEKTRUM PADA PERIODA AKTUAL STRUKTUR",None,None,hdr2=True)
+row("Perioda ragam longitudinal TX (eigenvalue perencana)",'=T_X',"s","TX")
+row("Perioda ragam transversal TY (eigenvalue perencana)",'=T_Y',"s","TY")
+row("Csm arah X = SDS bila TX<=Ts, selain itu SD1/TX",'=IF(%s<=%s,%s,%s/%s)'%(E('TX'),E('Ts'),E('SDS'),E('SD1'),E('TX')),"g","CsmX")
+row("Csm arah Y = SDS bila TY<=Ts, selain itu SD1/TY",'=IF(%s<=%s,%s,%s/%s)'%(E('TY'),E('Ts'),E('SDS'),E('SD1'),E('TY')),"g","CsmY")
+row("R faktor modifikasi respons (struktur atas)",'=R_eq',"-","R")
+row("KOEFISIEN GEMPA arah X = CsmX / R",'=%s/%s'%(E('CsmX'),E('R')),"-","kX")
+row("KOEFISIEN GEMPA arah Y = CsmY / R",'=%s/%s'%(E('CsmY'),E('R')),"-","kY")
+row("BERAT PERMANEN (per m bentang)",None,None,hdr2=True)
+row("Plat lantai = B_as x t_slab x gam_c",'=B_as*t_slab*gam_c',"kN/m","w1")
+row("Trotoar = 2 x t_trot x gam_c x W_trot",'=2*t_trot*gam_c*W_trot',"kN/m","w2")
+row("Aspal = W_road x t_asp x gam_asp",'=W_road*t_asp*gam_asp',"kN/m","w3")
+row("Sandaran = 2 x w_rail",'=2*w_rail',"kN/m","w4")
+row("Baja termodel = W_steel / L",'=W_steel/L_span',"kN/m","w5")
+row("W permanen per m",'=SUM(%s:%s)'%(E('w1'),E('w5')),"kN/m","wtot")
+row("W permanen total",'=%s*L_span'%E('wtot'),"kN","Wtot")
+row("GAYA GEMPA",None,None,hdr2=True)
+row("EQX total = koefX x W",'=%s*%s'%(E('kX'),E('Wtot')),"kN","EQX")
+row("EQY total = koefY x W",'=%s*%s'%(E('kY'),E('Wtot')),"kN","EQY")
+row("Berat dek per m (plat+trotoar+aspal+sandaran)",'=SUM(%s:%s)'%(E('w1'),E('w4')),"kN/m","wd")
+row("Gaya gempa dek per m - arah X",'=%s*%s'%(E('kX'),E('wd')),"kN/m","gdX")
+row("Gaya gempa dek per m - arah Y",'=%s*%s'%(E('kY'),E('wd')),"kN/m","gdY")
+row("Gaya gempa baja per m - arah X",'=%s*%s'%(E('kX'),E('w5')),"kN/m","gsX")
+row("Gaya gempa baja per m - arah Y",'=%s*%s'%(E('kY'),E('w5')),"kN/m","gsY")
+rr=r[0]+1
+hdr(ws,rr,["Stringer","b plat (m)","EQX pada stringer (kN/m)","EQY pada stringer (kN/m)"],[10,13,24,24])
 for i,y in enumerate(YS):
-    rr=37+i
-    ws.cell(rr,1,"ST-%d"%(i+1)); ws.cell(rr,2,"='1-TRIBUTARI'!D%d"%(5+i))
-    ws.cell(rr,3,"=$E$30*B%d/B_as"%rr).fill=FO; ws.cell(rr,3).number_format='0.000'
-    for j in range(1,4): ws.cell(rr,j).border=B
-ws.cell(44,2,"TOTAL"); ws.cell(44,3,"=SUM(C37:C43)").font=Font(bold=True); ws.cell(44,3).number_format='0.000'
-ws.cell(46,1,"Cek: SUM(stringer)xL + 2 x E32 x L + 2 x E33 x L_tc harus = EQ total (E28).")
-ws.cell(47,1,'=SUM(C37:C43)*L_span+2*E32*L_span+2*E33*L_tc').number_format='0.0'
-ws.cell(49,1,"CATATAN PENTING: dengan R=1 (desain elastis sambungan & perletakan, SNI 2833 ps.5.9) koefisien 0.91 sangat besar.").font=Font(bold=True,color="C00000")
-ws.cell(50,1,"Untuk desain bangunan bawah dapat dipakai R=3 (pilar tunggal) - cukup ubah sel R_eq di sheet 0-INPUT, seluruh hasil ikut berubah.").font=Font(italic=True,size=9)
-ws.cell(51,1,"Disarankan tetap melakukan analisis dinamik (eigenvalue + spektrum respons) di midas untuk mendapat T aktual dan Csm yang benar.").font=Font(italic=True,size=9)
+    q=rr+1+i
+    ws.cell(q,1,"ST-%d"%(i+1)); ws.cell(q,2,"='1-TRIBUTARI'!D%d"%(5+i))
+    ws.cell(q,3,"=$%s*B%d/B_as"%(E('gdX'),q)).fill=FO
+    ws.cell(q,4,"=$%s*B%d/B_as"%(E('gdY'),q)).fill=FO
+    for j in range(1,5): ws.cell(q,j).border=B; ws.cell(q,j).number_format='0.000'
+tt=rr+8
+ws.cell(tt,2,"TOTAL")
+for j in (3,4): ws.cell(tt,j,"=SUM(%s%d:%s%d)"%(get_column_letter(j),rr+1,get_column_letter(j),rr+7)).font=Font(bold=True); ws.cell(tt,j).number_format='0.000'
+n=tt+2
+ws.cell(n,1,"PERBANDINGAN DENGAN PEMAPARAN PERENCANA (lokasi Seram Bagian Barat)").font=Font(bold=True,color="1F4E78")
+hdr(ws,n+1,["Parameter","Pemaparan (Seram)","Timor Leste (dipakai)","Catatan"],[26,20,22,52])
+cmp=[("PGA",0.39,'=PGA',"peta hazard lokasi berbeda"),("Ss",0.77,'=S_s',""),("S1",0.247,'=S_1',""),
+     ("SDS",0.918,'=%s'%E('SDS'),""),("SD1",0.470,'=%s'%E('SD1'),"ini yang menentukan, karena T jauh > Ts"),
+     ("Kelas situs","tanah sedang (SD)","tanah sedang (SD)","SAMA"),
+     ("R struktur atas",1,'=R_eq',"SAMA"),("Metode","spektrum respons","spektrum respons","SAMA"),
+     ("Csm arah X",0.273,'=%s'%E('CsmX'),"Csm = SD1/T"),("Csm arah Y",0.250,'=%s'%E('CsmY'),"Csm = SD1/T")]
+for i,(a1,b1,c1,d1) in enumerate(cmp):
+    q=n+2+i
+    for j,v in enumerate((a1,b1,c1,d1),1): ws.cell(q,j,v).border=B
+    ws.cell(q,3).fill=FO
+m=n+13
+ws.cell(m,1,"CATATAN PENTING").font=Font(bold=True,color="C00000")
+ws.cell(m+1,1,"PGA 0.30 / Ss 0.70 / S1 0.30 untuk Dili adalah ASUMSI - wajib diganti data hazard resmi Timor-Leste.").font=Font(color="C00000")
+ws.cell(m+2,1,"Batas kemampuan profil asli (hasil analisis): SD1 <= 0.52  atau  S1 <= 0.289 g dengan Fv = 1.8.")
+ws.cell(m+3,1,"Dengan S1 = 0.30 g terlampaui 3.7% dan 1 batang ikatan angin bawah (BR1 dekat tumpuan) mencapai rasio 1.04.")
+ws.cell(m+4,1,"Csm = SDS (plateau) TIDAK boleh dipakai: perioda struktur ~1.8 s jauh di cabang menurun spektrum (Ts = 0.62 s).")
+ws.cell(m+5,1,"Perioda TX/TY diambil dari eigenvalue pemaparan perencana. Setelah model diperbaiki, jalankan eigenvalue ulang dan perbarui sel T_X / T_Y.")
+ws.cell(m+6,1,"Perletakan dan angkur tetap dicek dengan gaya elastis penuh (SNI 2833 ps.5.9), bukan hasil bagi R.")
 
 # ================= 8-REKAP =================
 ws=wb.create_sheet("8-REKAP-INPUT-MIDAS")
@@ -315,9 +352,10 @@ add("EWV","W","Chord bawah y=0 (windward)","Angin vertikal ke atas","='5-ANGIN'!
 add("EWV","W","Chord bawah y=7.6 (leeward)","Angin vertikal ke atas","='5-ANGIN'!E19","kN/m","GZ+","5")
 add("EUN","T","Seluruh elemen","Suhu seragam naik","='6-SUHU'!E9","C","-","6")
 add("EUN-N","T","Seluruh elemen","Suhu seragam turun","=-'6-SUHU'!E9","C","-","6")
-for i,y in enumerate(YS): add("EQX / EQY","E","Stringer ST-%d"%(i+1),"Gempa statik ekuivalen","='7-GEMPA'!C%d"%(37+i),"kN/m","GX/GY","7")
-add("EQX / EQY","E","Chord bawah (2 sisi)","Gempa - massa baja","='7-GEMPA'!E32","kN/m","GX/GY","7")
-add("EQX / EQY","E","Chord atas (2 sisi)","Gempa - massa baja","='7-GEMPA'!E33","kN/m","GX/GY","7")
+for i,y in enumerate(YS): add("EQX","E","Stringer ST-%d (titik buhul)"%(i+1),"Gempa memanjang","='7-GEMPA'!C%d"%(42+i),"kN/m","GX","7")
+for i,y in enumerate(YS): add("EQY","E","Stringer ST-%d (titik buhul)"%(i+1),"Gempa melintang","='7-GEMPA'!D%d"%(42+i),"kN/m","GY","7")
+add("EQX","E","Semua elemen baja","Gempa - massa baja sendiri","='7-GEMPA'!E38","kN/m","GX","7")
+add("EQY","E","Semua elemen baja","Gempa - massa baja sendiri","='7-GEMPA'!E39","kN/m","GY","7")
 for i,v in enumerate(rw):
     r=5+i
     for j,x in enumerate(v,1): c=ws.cell(r,j,x); c.border=B
@@ -333,14 +371,15 @@ V=[("MS","Self Weight + Element Beam Loads",105,'=SUM(\'2-MS-BERAT-SENDIRI\'!D7:
    ("TD-BGT","Nodal Loads",7,"='4-TD-LAJUR-D'!D19","kN","-Z","1 node per stringer di buhul x=46.6655 m"),
    ("TB1","Element Beam Loads",75,"='4b-GAYA-REM'!E20*5*L_span","kN","+X","5 stringer (ST-2..ST-6) x 15 panel = 75"),
    ("TB1","Nodal Loads",4,0,"kN","Z","kopel vertikal, resultan nol (2 naik + 2 turun)"),
+   ("-","Rigid Link (diafragma)",16,0,"-","-","Plane XY: Dx Dy Rz, master node chord bawah y=0 tiap panel"),
    ("TP","Element Beam Loads",30,"='4-TD-LAJUR-D'!D22*2*L_span","kN","-Z","2 stringer tepi x 15 panel"),
    ("EWS","Element Beam Loads",58,"=2*'5-ANGIN'!E9*L_tc+2*'5-ANGIN'!E10*L_span","kN","+Y","chord atas 2x14=28 + chord bawah 2x15=30"),
    ("EWL","Element Beam Loads",60,"=2*'5-ANGIN'!E14*L_span","kN","+Y","30 horizontal + 30 kopel vertikal (resultan vert = 0)"),
    ("EWV","Element Beam Loads",30,"=('5-ANGIN'!E18+'5-ANGIN'!E19)*L_span","kN","+Z","chord bawah 2 x 15"),
    ("EUN","Element Temperatures",388,"='6-SUHU'!E9","C","-","seluruh elemen"),
    ("EUN-N","Element Temperatures",388,"=-'6-SUHU'!E9","C","-","seluruh elemen"),
-   ("EQX","Element Beam Loads",163,"='7-GEMPA'!E28","kN","+X","105 stringer + 30 chord bawah + 28 chord atas"),
-   ("EQY","Element Beam Loads",163,"='7-GEMPA'!E28","kN","+Y","105 stringer + 30 chord bawah + 28 chord atas")]
+   ("EQX","Beam Loads + Nodal","473+112","='7-GEMPA'!E33","kN","+X","massa baja tiap elemen + massa dek di 7 stringer x 16 buhul"),
+   ("EQY","Beam Loads + Nodal","473+112","='7-GEMPA'!E34","kN","+Y","massa baja tiap elemen + massa dek di 7 stringer x 16 buhul")]
 for i,v in enumerate(V):
     r=5+i
     for j,x in enumerate(v,1): c=ws.cell(r,j,x); c.border=B

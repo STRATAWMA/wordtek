@@ -26,11 +26,11 @@ for y in YS:
         if abs(yy-y)<1 and abs(x-XBGT)<1 and z<3000: NBGT[y]=n
 # ---------- PARAMETER ----------
 P=dict(L=99.9975,npan=15,a=6.6665,Bas=7.6,Wroad=6.0,Wtrot=0.5,nstr=7,s=1.1,
-       tslab=0.25,ttrot=0.35,tasp=0.05,gc=24.0,gasp=22.0,gs=78.5,
+       tslab=0.25,ttrot=0.35,tasp=0.05,gc=25.0,gasp=22.0,gs=78.5,
        wrail=0.5,qped=5.0,
        PBt=2.4,PBl=1.2,PBv=0.96,Atruss=2.370,hdeck=0.35,htruss=8.50,
        EWLq=1.46,hEWL=1.8,dT=15.0,
-       PGA=0.30,Ss=0.70,S1=0.30,Fpga=1.2,Fa=1.3,Fv=2.8,Req=3.0,
+       PGA=0.30,Ss=0.70,S1=0.30,Fpga=1.200,Fa=1.240,Fv=1.800,Req=1.0,TX=1.7222,TY=1.8790,
        Wsteel=3188.8)
 L=P['L']; s=P['s']; Wt=P['Wtrot']
 
@@ -42,7 +42,7 @@ b_road={y:(0.25 if y in (500,7100) else s) for y in YS}
 b_btr ={y:(0.125 if y in (500,7100) else s) for y in YS}
 
 q_slab=P['tslab']*P['gc']                       # 6.00 kPa
-q_trot=(P['ttrot']-P['tslab'])*P['gc']*Wt       # 1.20 kN/m (topping 10cm x 0.5m)
+q_trot=P['ttrot']*P['gc']*Wt                    # tebal penuh x 0.5 m (konvensi perencana)
 q_asp =P['tasp']*P['gasp']                      # 1.10 kPa
 qBTR  = 9.0 if L<=30 else 9.0*(0.5+15.0/L)      # 5.85 kPa
 FBD   = 0.4 if L<=50 else (0.3 if L>=90 else 0.4-0.1*(L-50)/40)
@@ -69,7 +69,11 @@ EWV_w  = EWV_tot*0.75; EWV_l=EWV_tot*0.25
 
 # ---------- GEMPA ----------
 As=P['Fpga']*P['PGA']; SDS=P['Fa']*P['Ss']; SD1=P['Fv']*P['S1']; Ts=SD1/SDS
-Csm=SDS; coef=Csm/P['Req']
+T0=0.2*Ts
+def Csm_of(T):  return SDS if T<=Ts else SD1/T
+CsmX=Csm_of(P['TX']); CsmY=Csm_of(P['TY'])
+coefX=CsmX/P['Req']; coefY=CsmY/P['Req']
+Csm=max(CsmX,CsmY); coef=max(coefX,coefY)
 w_slab_m=P['Bas']*P['tslab']*P['gc']            # 45.6
 w_trot_m=2*q_trot; w_asp_m=P['Wroad']*q_asp; w_rail_m=2*P['wrail']
 w_steel_m=P['Wsteel']/L
@@ -78,7 +82,10 @@ Wperm=Wperm_m*L
 EQ_tot=coef*Wperm
 # distribusi: massa dek -> 7 stringer (prop. b_slab), massa baja -> 55% chord bawah,45% chord atas
 w_deck_m=w_slab_m+w_trot_m+w_asp_m+w_rail_m
-EQ_str={y:coef*(w_deck_m*b_slab[y]/P['Bas']) for y in YS}
+EQ_strX={y:coefX*(w_deck_m*b_slab[y]/P['Bas']) for y in YS}
+EQ_strY={y:coefY*(w_deck_m*b_slab[y]/P['Bas']) for y in YS}
+EQ_str=EQ_strY
+EQ_bcX=coefX*w_steel_m*0.55/2; EQ_bcY=coefY*w_steel_m*0.55/2
 EQ_bc = coef*w_steel_m*0.55/2
 EQ_tc = coef*w_steel_m*0.45/2*(L/Ltc)           # chord atas hanya 93.331 m
 chk=sum(EQ_str.values())*L+2*EQ_bc*L+2*EQ_tc*Ltc
@@ -108,7 +115,8 @@ TB_M  = TB_tot*P['hEWL']
 TB_V  = TB_M/L/2        # per rangka, di tiap tumpuan
 NSUP  = dict(x0=[1,48], xL=[16,56])
 
-R=dict(P=P,Ltc=Ltc,tb_a=tb_a,tb_b=tb_b,tb_lane=tb_lane,TB_tot=TB_tot,TB_AA=TB_AA,
+R=dict(P=P,Ltc=Ltc,T0=T0,CsmX=CsmX,CsmY=CsmY,coefX=coefX,coefY=coefY,
+  EQ_strX=EQ_strX,EQ_strY=EQ_strY,EQ_bcX=EQ_bcX,EQ_bcY=EQ_bcY,EQ_totX=coefX*0,tb_a=tb_a,tb_b=tb_b,tb_lane=tb_lane,TB_tot=TB_tot,TB_AA=TB_AA,
   tbA_a=tbA_a,tbA_b=tbA_b,Wbrake=Wbrake,YS_TB=YS_TB,TB_str=TB_str,TB_M=TB_M,TB_V=TB_V,NSUP=NSUP,b_slab=b_slab,b_road=b_road,b_btr=b_btr,q_slab=q_slab,q_trot=q_trot,q_asp=q_asp,
   qBTR=qBTR,FBD=FBD,qBGT=qBGT,MS=MS,MAtr=MAtr,MAasp=MAasp,MA=MA,BTR=BTR,BGT=BGT,TP=TP,
   Aexp=Aexp,EWS_tot=EWS_tot,EWS_tc=EWS_tc,EWS_bc=EWS_bc,EWL_h=EWL_h,EWL_v=EWL_v,

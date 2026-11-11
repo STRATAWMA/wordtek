@@ -150,8 +150,8 @@ for n,t,d in [("MS","D","Berat sendiri baja + plat lantai beton 250 mm"),
  ("EWL","W","Angin pada kendaraan 1.46 kN/m (SNI 1725 ps.9.6.1.2)"),
  ("EWV","W","Angin vertikal 0.96 kPa x 7.6 m (SNI 1725 ps.9.6.2)"),
  ("EUN","T","Suhu seragam naik +15 C"),("EUN-N","T","Suhu seragam turun -15 C"),
- ("EQX","E","Gempa memanjang statik ekuivalen Csm/R = %.4f (SNI 2833)"%R['coef']),
- ("EQY","E","Gempa melintang statik ekuivalen Csm/R = %.4f (SNI 2833)"%R['coef'])]:
+ ("EQX","E","Gempa memanjang Csm=SD1/T=0.470/1.7222 -> koef %.4f (SNI 2833)"%R['coefX']),
+ ("EQY","E","Gempa melintang  Csm=SD1/T=0.470/1.8790 -> koef %.4f (SNI 2833)"%R['coefY'])]:
     A("   %-7s, %s, %s"%(n,t,d))
 def bl(els,p,dr="GZ",sg=-1):
     return "   %s, BEAM, UNILOAD, %s, NO, NO, LZ, 0, 0, NO, 0, %.4f, 1, %.4f, 0, 0, 0, 0, "%(els,dr,sg*p,sg*p)
@@ -210,11 +210,14 @@ for i,f in S.items():
 for i,dd in CGDIM.items(): AREA[i]=Hp(dd,420,12,16)
 bysec=collections.defaultdict(list)
 for e in elems: bysec[e['sec']].append(e['id'])
+CO={'EQX':R['coefX'],'EQY':R['coefY']}
 coef=R['coef']; w_deck=R['w_slab_m']+R['w_trot_m']+R['w_asp_m']+R['w_rail_m']
 bsl={500.0:1.05,1600.0:1.1,2700.0:1.1,3800.0:1.1,4900.0:1.1,6000.0:1.1,7100.0:1.1}
 for lc,dr in (('EQX','GX'),('EQY','GY')):
+    coef=CO[lc]
     blk(lc)
-    A("; massa baja: w = %.3f x 78.5 kN/m3 x A  (per penampang)"%coef)
+    A("; Csm = SD1/T = %.4f / %.4f = %.4f g ; R = %.1f -> koef = %.4f"%(R['SD1'],P['TX'] if lc=='EQX' else P['TY'],coef*P['Req'],P['Req'],coef))
+    A("; massa baja: w = %.4f x 78.5 kN/m3 x A  (per penampang)"%coef)
     A("*BEAMLOAD")
     for isec in sorted(bysec):
         w=coef*78.5*AREA[isec]/1e6
@@ -236,8 +239,8 @@ CB=[("KUAT I","STRENGTH",[("MS",1.1),("MA",2.0),("TD-BTR",1.8),("TD-BGT",1.8),("
  ("KUAT III-MIN","STRENGTH",[("MS",0.9),("MA",0.7),("EWS",1.4),("EWV",1.4)]),
  ("KUAT IV","STRENGTH",[("MS",1.1),("MA",2.0),("EUN",0.5)]),
  ("KUAT V","STRENGTH",[("MS",1.1),("MA",2.0),("EWS",0.4),("EWL",1.0),("EUN",0.5)]),
- ("EKSTREM I-EQX","STRENGTH",[("MS",1.1),("MA",2.0),("EQX",1.0)]),
- ("EKSTREM I-EQY","STRENGTH",[("MS",1.1),("MA",2.0),("EQY",1.0)]),
+ ("EKSTREM I-EQX","STRENGTH",[("MS",1.1),("MA",2.0),("EQX",1.0),("EQY",0.3)]),
+ ("EKSTREM I-EQY","STRENGTH",[("MS",1.1),("MA",2.0),("EQX",0.3),("EQY",1.0)]),
  ("LAYAN I","SERVICE",[("MS",1.0),("MA",1.0),("TD-BTR",1.0),("TD-BGT",1.0),("TP",1.0),("TB1",1.0),("EWS",0.3),("EWL",1.0),("EUN",1.0)]),
  ("LAYAN II","SERVICE",[("MS",1.0),("MA",1.0),("TD-BTR",1.3),("TD-BGT",1.3),("TB1",1.3),("EUN",1.0)]),
  ("LAYAN IV","SERVICE",[("MS",1.0),("MA",1.0),("EWS",0.7),("EWV",0.7),("EUN",1.0)]),

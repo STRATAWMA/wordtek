@@ -213,18 +213,18 @@ def run(scale,skip_eq):
             if rt>w[0]: w=(rt,cn,N/1000,My/1e6,Mz/1e6)
         out.append((w[0],e['id'],NM[e['sec']],w[1],w[2],w[3],w[4]))
     return sorted(out,reverse=True)
-for lab,sk in (("TANPA GEMPA (KUAT I/III/IV/V)",True),("DENGAN GEMPA koef 0.910 (R=1)",False)):
+for lab,sk in (("TANPA GEMPA (KUAT I/III/IV/V)",True),("DENGAN GEMPA (Timor Leste, R=1)",False)):
     rr=run(1.0,sk); fm=collections.defaultdict(float)
     for r,e,nm,cn,N,My,Mz in rr: fm[nm.rstrip('0123456789-')]=max(fm[nm.rstrip('0123456789-')],r)
     print("\n  %-32s NG: %d/%d   maks %.2f"%(lab,len([x for x in rr if x[0]>1]),len(rr),rr[0][0]))
     print("    "+" | ".join("%s %.2f"%(k,v) for k,v in sorted(fm.items(),key=lambda x:-x[1])))
     for r,e,nm,cn,N,My,Mz in rr[:4]: print("      %.2f el%-5d %-8s %-14s N=%8.1f My=%7.1f Mz=%7.1f"%(r,e,nm,cn,N,My,Mz))
-lo,hi=0.0,1.0
+lo,hi=0.0,2.0
 for _ in range(14):
     md=(lo+hi)/2
-    if run(md/0.910,False)[0][0]<=1.0: lo=md
+    if run(md,False)[0][0]<=1.0: lo=md
     else: hi=md
-print("\n  >>> KOEFISIEN GEMPA MAKSIMUM yang sanggup dipikul profil asli = %.3f"%lo)
+print("\n  >>> FAKTOR SKALA GEMPA MAKSIMUM profil asli = %.4f x beban gempa saat ini"%lo)
 res=[]
 for X in EL:
     pass
