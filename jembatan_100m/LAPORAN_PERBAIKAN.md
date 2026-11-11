@@ -128,7 +128,33 @@ Verifikasi berasal dari analisis rangka 3D yang saya tulis sendiri (direct stiff
 |---|---|---|
 | `The number of parameters are too many` (baris 28, 36, 37) | koma di dalam teks deskripsi `*STLDCASE` | koma diganti tanda hubung |
 | `*RIGIDLINK` — tiga pesan berbeda | field 1 ternyata **nomor urut**, bukan master | format benar: `iNO, MASTER_NODE, DOF, S_NODE_LIST, GROUP` |
-| `*REBAR-MATL-CODE cannot be executed when nodes or sections are included` | blok itu hanya untuk desain beton bertulang | dipasang kembali **dengan sengaja** sebagai pendeteksi model kosong |
+| `*REBAR-MATL-CODE cannot be executed when nodes or sections are included` | blok itu hanya untuk desain beton bertulang | dihapus; diganti pemecahan file struktur/beban |
+| **semua frame merah** (tidak ada pesan error) | **`*STRUCTYPE` terbaca saat satuan masih KN, M** | file dimulai dengan `TONF, MM` seperti model asli |
+
+### Semua frame merah — penyebabnya satuan, dan ini kesalahan saya
+
+Saya menaruh `*UNIT KN, M` di awal file (untuk blok beban), sehingga `*STRUCTYPE` ikut terbaca dengan satuan panjang **meter**:
+
+```
+*UNIT
+   KN, M, BTU, C          <- salah: berlaku juga untuk *STRUCTYPE di bawahnya
+*STRUCTYPE
+   0, 1, 1, NO, YES, 9810, 0, NO, NO, NO
+                     ^^^^ GRAV
+```
+
+Field `GRAV = 9810` dimaksudkan **9810 mm/s² = 9,81 m/s²**. Dibaca dengan satuan meter, nilainya menjadi **9810 m/s²** — gravitasi **1000× lipat**, jadi berat sendiri seluruh baja ikut 1000× lipat. Semua batang pasti merah.
+
+Model asli tidak kena karena memang mulai dengan `TONF, MM` dari awal. Analisis saya sendiri juga tidak menangkapnya karena solver saya memakai gravitasinya sendiri dan tidak pernah membaca `*STRUCTYPE`.
+
+**Perbaikan:** file sekarang dimulai `TONF, MM`; pindah ke `KN, M` hanya pada blok beban. Saya tambahkan validator yang memeriksa setiap blok dibaca di satuan yang benar:
+
+| Blok | Satuan saat dibaca |
+|---|---|
+| STRUCTYPE, NODE, ELEMENT, SECTION, MATERIAL, THICKNESS, CONSTRAINT, RIGIDLINK | **MM** ✓ |
+| STLDCASE, SELFWEIGHT, BEAMLOAD, CONLOAD, ELTEMPER, LOADCOMB | **M** ✓ |
+
+15 blok diperiksa, 0 salah.
 
 ### Cara format `*RIGIDLINK` ditemukan
 

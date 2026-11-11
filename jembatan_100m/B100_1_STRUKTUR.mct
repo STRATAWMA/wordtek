@@ -23,9 +23,13 @@
 *VERSION
    8.7.5
 
+; Satuan DIMULAI dengan TONF, MM - sama seperti model asli.
+; PENTING: *STRUCTYPE memuat GRAV = 9810 yang HARUS dibaca sebagai mm/s2.
+; Bila blok ini terbaca saat satuan KN,M, gravitasi menjadi 9810 m/s2 dan
+; berat sendiri melonjak 1000x lipat.
 *UNIT
 ; FORCE, LENGTH, HEAT, TEMPER
-   KN, M, BTU, C
+   TONF, MM, BTU, C
 
 *PROJINFO
    PROJECT=Jembatan Rangka Baja Kelas A - Bentang 100 m - BM 100
@@ -36,9 +40,6 @@
      0, 1, 1, NO, YES, 9810, 0, NO, NO, NO
 
 
-
-*UNIT
-   TONF, MM, BTU, C
 
 *NODE
 ; iNO, X, Y, Z
