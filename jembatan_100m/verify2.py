@@ -18,7 +18,7 @@ for ln in open(F,errors='ignore'):
     elif sec=='*ELEMENT': elems.append(dict(id=int(f[0]),sec=int(f[3]),n1=int(f[4]),n2=int(f[5])))
     elif sec=='*SECTION' and f[1] in ('DBUSER','TAPERED'): S[int(f[0])]=f
     elif sec=='*CONSTRAINT': sup[int(f[0])]=f[1]
-    elif sec=='*RIGIDLINK': rl.append((int(f[0]),f[2],[int(x) for x in f[1].split()]))
+    elif sec=='*RIGIDLINK': rl.append((int(f[0]),f[2],[int(f[1])]))
     elif sec=='*BEAMLOAD': bl[lc].append((f[0],f[3],float(f[11])))
     elif sec=='*CONLOAD': cl[lc].append((int(f[0]),float(f[1]),float(f[2]),float(f[3])))
     elif sec=='*ELTEMPER': tp[lc].append((f[0],float(f[1])))

@@ -53,6 +53,11 @@ A(";             (3) beban dimasukkan SEKALI (sebelumnya dobel)")
 A(";             (4) diafragma lantai (pelat 250 mm) sebagai Rigid Link bidang XY")
 
 A(";             (6) gaya rem di level chord bawah, gempa dek sebagai beban titik")
+A(";")
+A(";  >>> PENTING: IMPOR KE MODEL BARU / KOSONG, JANGAN KE MODEL LAMA. <<<")
+A(";      File ini berisi SELURUH model (node, elemen, penampang, tumpuan,")
+A(";      beban, kombinasi). Menjalankannya di atas model yang sudah berisi")
+A(";      data akan menggandakan beban - persis masalah yang baru diperbaiki.")
 A(";--------------------------------------------------------------------------")
 A("")
 A("*VERSION"); A("   8.7.5"); A("")
@@ -109,15 +114,17 @@ A("; Tanpa ini gaya horizontal bidang lantai terpaksa dipikul lentur sumbu lemah
 A("; gelagar melintang -> Mz palsu sampai 630 kNm dan ikatan angin kelebihan beban.")
 
 YF=[0.0,500.0,1600.0,2700.0,3800.0,4900.0,6000.0,7100.0,7600.0]
-A("; Urutan field: MASTER_NODE, S_NODE_LIST, DOF, GROUP")
+A("; Satu baris per pasangan master-slave: MASTER_NODE, SLAVE_NODE, DOF, GROUP")
 A("; DOF 110001 = Dx, Dy, Rz  (di GUI midas: Rigid Link tipe Plane XY)")
+A("; 16 panel x 8 slave = 128 baris.")
 A("*RIGIDLINK")
-A("; MASTER_NODE, S_NODE_LIST, DOF, GROUP")
+A("; MASTER_NODE, SLAVE_NODE, DOF, GROUP")
 for x in PANEL:
-    m=bxf[x][0.0]; sl=" ".join(str(bxf[x][y]) for y in YF[1:])
-    A("   %d, %s, 110001, "%(m,sl))
+    m=bxf[x][0.0]
+    for y in YF[1:]:
+        A("   %d, %d, 110001, "%(m,bxf[x][y]))
 A("")
-A("; JIKA 16 baris di atas MASIH error parsing, hapus saja blok *RIGIDLINK ini lalu")
+A("; JIKA 128 baris di atas MASIH error parsing, hapus saja blok *RIGIDLINK ini lalu")
 A("; buat lewat GUI: Model > Boundaries > Rigid Link, Typical Type = Plane XY,")
 A("; master = node pertama tiap baris, slave = 8 node berikutnya. Sisa model tetap")
 A("; terimpor normal. Daftar lengkapnya persis seperti baris-baris di atas.")
