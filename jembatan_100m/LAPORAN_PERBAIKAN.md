@@ -13,11 +13,11 @@ Perhitungan: **`Pembebanan_Jembatan_Rangka_100m.xlsx`** (11 sheet, berumus penuh
 |---|---|
 | Eigenvalue minimum | 293 > 0 → **stabil**, tidak singular |
 | Node terisolasi | 0 |
-| Lendutan hidup tengah bentang | **77,8 mm** < L/800 = 125 mm ✓ |
-| KUAT I / III / IV / V | **0 NG dari 473**, rasio maks 0,95 |
+| Lendutan hidup tengah bentang | **78,9 mm** < L/800 = 125 mm ✓ |
+| KUAT I / III / IV / V | **0 NG dari 473**, rasio maks 0,96 |
 | Termasuk EKSTREM I (gempa Timor Leste) | **1 NG dari 473**, rasio 1,04 |
 
-Perencana melaporkan stress ratio maks 0,99–0,996 — hasil saya 0,95 untuk kombinasi non-gempa, konsisten.
+Perencana melaporkan stress ratio maks 0,99–0,996 — hasil saya 0,96 untuk kombinasi non-gempa, konsisten.
 
 ---
 
@@ -119,3 +119,30 @@ Susunan radial dari titik tetap node 16, semua rotasi bebas, muai tidak terkekan
 ## Catatan metode
 
 Verifikasi berasal dari analisis rangka 3D yang saya tulis sendiri (direct stiffness, 1218 DOF) yang membaca **hanya** `B100_FINAL.mct`, dengan cek interaksi pendekatan AASHTO LRFD (tanpa LTB). Saya tidak bisa menjalankan midas dari sini — silakan Run ulang untuk konfirmasi.
+
+---
+
+## Perbaikan format MCT (tiga putaran error import)
+
+| Error midas | Sebab | Perbaikan |
+|---|---|---|
+| `The number of parameters are too many` (baris 28, 36, 37) | koma di dalam teks deskripsi `*STLDCASE` | koma diganti tanda hubung |
+| `Binary code has characters other than 0 & 1` lalu `The integer value without a sign is invalid` (16 baris) | urutan field `*RIGIDLINK` salah; dua pesan itu menunjukkan field 1 dan 2 harus integer dan field 3 binary | satu pasangan master–slave per baris: `MASTER_NODE, SLAVE_NODE, DOF, GROUP` → 128 baris |
+| `*REBAR-MATL-CODE cannot be executed when nodes or sections are included` | blok itu hanya untuk desain beton bertulang | blok dihapus (tidak dipakai jembatan baja) |
+
+## Cek setelah impor — jumlah entri harus TEPAT
+
+| Load case | Entri |
+|---|---|
+| MS | Self Weight + **105** beam |
+| MA | **105** beam |
+| TD-BTR | **105** beam |
+| TD-BGT | **7** nodal |
+| TB1 | **30** beam + **4** nodal |
+| TP | **30** beam |
+| EWS / EWL / EWV | **58** / **60** / **30** beam |
+| EUN / EUN-N | **473** element temperature |
+| EQX / EQY | **473** beam + **112** nodal |
+| Boundaries → Rigid Link | **128** |
+
+Bila MS menunjukkan 210, berarti terimpor ke model yang sudah berisi data — ulangi dari model kosong.

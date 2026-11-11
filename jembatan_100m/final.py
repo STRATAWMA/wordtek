@@ -9,11 +9,25 @@ def expand(rs):
         if 'to' in t: a,b=t.split('to'); o+=list(range(int(a),int(b)+1))
         else: o.append(int(t))
     return o
-DUPNEW={7,92,185,201,217,233,248,265,281,299,330}
-def fix_list(ids): return [i for i in ids if i not in DUPNEW]
-STR={y:fix_list(expand(R['_rng'][y])) for y in YS}
-BC={k:fix_list(expand(v)) for k,v in R['_rngBC'].items()}
-TC={k:fix_list(expand(v)) for k,v in R['_rngTC'].items()}
+# daftar elemen dibangun ULANG dari geometri model final (bukan dari range lama),
+# supaya pertukaran elemen duplikat 248/249 tidak menghilangkan satu panel.
+import collections as _c
+_byl=_c.defaultdict(list)
+for _e in elems:
+    _a,_b=nodes[_e['n1']],nodes[_e['n2']]
+    if abs(_a[1]-_b[1])<1 and abs(_a[0]-_b[0])>1 and _a[2]<3000 and _b[2]<3000:
+        _byl[round(_a[1])].append(_e['id'])
+_tc=_c.defaultdict(list)
+for _e in elems:
+    _a,_b=nodes[_e['n1']],nodes[_e['n2']]
+    if abs(_a[1]-_b[1])<1 and _a[2]>7000 and _b[2]>7000: _tc[round(_a[1])].append(_e['id'])
+STR={y:sorted(_byl[int(y)]) for y in YS}
+BC={k:sorted(_byl[int(k)]) for k in ('0','7600')}
+TC={k:sorted(_tc[int(k)]) for k in ('0','7600')}
+for _y in YS:
+    assert len(STR[_y])==15, (_y,len(STR[_y]))
+assert len(BC['0'])==15 and len(BC['7600'])==15
+assert len(TC['0'])==14 and len(TC['7600'])==14
 def rng(ids):
     ids=sorted(set(ids)); out=[];i=0
     while i<len(ids):
@@ -52,7 +66,15 @@ A(";             (2) 11 elemen duplikat dihapus")
 A(";             (3) beban dimasukkan SEKALI (sebelumnya dobel)")
 A(";             (4) diafragma lantai (pelat 250 mm) sebagai Rigid Link bidang XY")
 
-A(";             (6) gaya rem di level chord bawah, gempa dek sebagai beban titik")
+A(";             (5) gaya rem di level chord bawah, gempa dek sebagai beban titik")
+A(";             (6) Csm gempa dari spektrum pada perioda aktual, bukan plateau SDS")
+A(";")
+A(";  CEK SETELAH IMPOR - Load > Static Load Cases, jumlah entri harus TEPAT:")
+A(";     MS 105 beam + Self Weight | MA 105 | TD-BTR 105 | TD-BGT 7 nodal")
+A(";     TB1 30 beam + 4 nodal     | TP 30  | EWS 58     | EWL 60 | EWV 30")
+A(";     EUN / EUN-N 473 temper    | EQX & EQY 473 beam + 112 nodal")
+A(";     Boundaries > Rigid Link   : 128")
+A(";  Bila MS menunjukkan 210, berarti terimpor ke model yang sudah berisi data.")
 A(";")
 A(";  >>> PENTING: IMPOR KE MODEL BARU / KOSONG, JANGAN KE MODEL LAMA. <<<")
 A(";      File ini berisi SELURUH model (node, elemen, penampang, tumpuan,")
@@ -65,8 +87,11 @@ A("*UNIT"); A("; FORCE, LENGTH, HEAT, TEMPER"); A("   KN, M, BTU, C"); A("")
 A("*PROJINFO")
 A("   PROJECT=Jembatan Rangka Baja Kelas A - Bentang 100 m - BM 100")
 A("   CLIENT=PT Indo Trans Baja Utama"); A("")
-for s in ('STRUCTYPE','REBAR-MATL-CODE'):
-    A("*"+s); [A(l) for l in grab(s)]; A("")
+A("*STRUCTYPE"); [A(l) for l in grab('STRUCTYPE')]; A("")
+A("; *REBAR-MATL-CODE sengaja TIDAK disertakan: blok itu hanya untuk desain beton")
+A("; bertulang (tidak dipakai jembatan baja ini) dan midas menolaknya bila model")
+A("; sudah berisi node/penampang. Menghapusnya menghilangkan error tanpa efek apa pun.")
+A("")
 A("*UNIT"); A("   TONF, MM, BTU, C"); A("")
 A("*NODE"); A("; iNO, X, Y, Z"); [A(l) for l in grab('NODE')]
 hdr("ELEMENT - 473 batang (duplikat dihapus, gelagar melintang dipecah 8 segmen)")

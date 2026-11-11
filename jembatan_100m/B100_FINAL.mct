@@ -6,7 +6,15 @@
 ;             (2) 11 elemen duplikat dihapus
 ;             (3) beban dimasukkan SEKALI (sebelumnya dobel)
 ;             (4) diafragma lantai (pelat 250 mm) sebagai Rigid Link bidang XY
-;             (6) gaya rem di level chord bawah, gempa dek sebagai beban titik
+;             (5) gaya rem di level chord bawah, gempa dek sebagai beban titik
+;             (6) Csm gempa dari spektrum pada perioda aktual, bukan plateau SDS
+;
+;  CEK SETELAH IMPOR - Load > Static Load Cases, jumlah entri harus TEPAT:
+;     MS 105 beam + Self Weight | MA 105 | TD-BTR 105 | TD-BGT 7 nodal
+;     TB1 30 beam + 4 nodal     | TP 30  | EWS 58     | EWL 60 | EWV 30
+;     EUN / EUN-N 473 temper    | EQX & EQY 473 beam + 112 nodal
+;     Boundaries > Rigid Link   : 128
+;  Bila MS menunjukkan 210, berarti terimpor ke model yang sudah berisi data.
 ;
 ;  >>> PENTING: IMPOR KE MODEL BARU / KOSONG, JANGAN KE MODEL LAMA. <<<
 ;      File ini berisi SELURUH model (node, elemen, penampang, tumpuan,
@@ -30,10 +38,9 @@
      0, 1, 1, NO, YES, 9810, 0, NO, NO, NO
 
 
-*REBAR-MATL-CODE
-; CONC_CODE, CONC_MDB, SRC_CODE, SRC_MDB
- ASTM(RC), Grade 60, ASTM(RC), Grade 60
-
+; *REBAR-MATL-CODE sengaja TIDAK disertakan: blok itu hanya untuk desain beton
+; bertulang (tidak dipakai jembatan baja ini) dan midas menolaknya bila model
+; sudah berisi node/penampang. Menghapusnya menghilangkan error tanpa efek apa pun.
 
 *UNIT
    TONF, MM, BTU, C
@@ -1460,7 +1467,7 @@
 ; ELEM_LIST, CMD, TYPE, DIR, bPROJ, [ECCEN], D1, P1, D2, P2, D3, P3, D4, P4, GROUP
    275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.5625, 1, -6.5625, 0, 0, 0, 0, 
    259to264 266to274, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.8750, 1, -6.8750, 0, 0, 0, 0, 
-   243to247 250to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.8750, 1, -6.8750, 0, 0, 0, 0, 
+   243to247 249to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.8750, 1, -6.8750, 0, 0, 0, 0, 
    179to184 186to194, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.8750, 1, -6.8750, 0, 0, 0, 0, 
    195to200 202to210, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.8750, 1, -6.8750, 0, 0, 0, 0, 
    211to216 218to226, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.8750, 1, -6.8750, 0, 0, 0, 0, 
@@ -1470,7 +1477,7 @@
 *BEAMLOAD
    275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -5.1500, 1, -5.1500, 0, 0, 0, 0, 
    259to264 266to274, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
-   243to247 250to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
+   243to247 249to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
    179to184 186to194, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
    195to200 202to210, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
    211to216 218to226, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -1.2100, 1, -1.2100, 0, 0, 0, 0, 
@@ -1480,7 +1487,7 @@
 *BEAMLOAD
    275to280 282to290, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -0.7313, 1, -0.7313, 0, 0, 0, 0, 
    259to264 266to274, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
-   243to247 250to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
+   243to247 249to258, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
    179to184 186to194, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
    195to200 202to210, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
    211to216 218to226, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -6.4350, 1, -6.4350, 0, 0, 0, 0, 
