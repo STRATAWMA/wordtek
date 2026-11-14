@@ -180,13 +180,26 @@ for y in YS:
 # SECTION A). Tanpa sambungan itu diagonal jadi 11,66 m menerus dan
 # KL/r = 208 > 120, batas AASHTO 6.9.3 - batang langsing semu.
 def xbrace(a1,a2,b1,b2,nm):
-    """dua diagonal silang a1-a2 dan b1-b2, disambung di perpotongan"""
-    ca,cb=CO[a1],CO[a2]
-    mid=nd((ca[0]+cb[0])/2,(ca[1]+cb[1])/2,(ca[2]+cb[2])/2)
-    for u in (a1,a2,b1,b2): G[nm].append(el(8,u,mid,2))
-    return mid
+    """Dua diagonal silang UTUH sebagai TRUSS.
+
+    Sambungan bracing memakai pelat buhul berbaut: batang memikul GAYA AKSIAL,
+    bukan momen. Dimodelkan BEAM, batang ikut memikul rotasi simpul chord dan
+    timbul momen semu (7,93 kNm pada elemen 1091) yang lalu diperbesar B1=2,53.
+
+    Diagonal TIDAK dipotong di perpotongan: simpul perpotongan hanya dipegang
+    4 batang sebidang, jadi kalau batangnya TRUSS simpul itu jadi mekanisme
+    (sudah diperiksa: determinan arah = 0 di 43 simpul). Dengan batang utuh,
+    kedua ujung mendarat di simpul chord yang dipegang balok.
+
+    Panjang tekuk efektif: pada bracing silang yang disambung di perpotongan,
+    diagonal tarik menahan titik silang sehingga KL = 0,5 L (AISC/AASHTO).
+    Setel K = 0,5 untuk batang PIPE6 di GUI midas.
+    """
+    G[nm].append(el(8,a1,a2,2,typ='TRUSS'))
+    G[nm].append(el(8,b1,b2,2,typ='TRUSS'))
+    return None
 for dic,nm,zf in ((tch,'HB-TOP',zT),(mch,'HB-MID',zM)):
-    for i in range(1,NP): G[nm].append(el(8,dic[(0.0,i)],dic[(B,i)],2))
+    for i in range(1,NP): G[nm].append(el(8,dic[(0.0,i)],dic[(B,i)],2,typ='TRUSS'))
     for i in range(1,NP-1):
         xbrace(dic[(0.0,i)],dic[(B,i+1)],dic[(B,i)],dic[(0.0,i+1)],nm)
 for i in range(1,NP):
@@ -353,14 +366,7 @@ W("    1, STEEL, SM490YB           , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3,
 W("    2, STEEL, STK41             , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3, 1.2000e-005, 8.00477e-009,     0")
 Ec=4700*math.sqrt(FC)
 W("; beton lantai fc' = %.0f MPa, E = %.0f MPa, 25 kN/m3"%(FC,Ec))
-Et=Ec/9806.65                      # tonf/mm2
-W("; PELAT ORTOTROPIK: arah memanjang (lokal-x = sumbu jembatan) dilemahkan")
-W("; jadi 8% karena pada pelengkung-bertarik balok tarik HARUS bisa memanjang.")
-W("; Arah melintang & vertikal tetap penuh supaya sebaran beban lantai benar.")
-W("; [DATA1] : 3, Ex, Ey, Ez, Tx, Ty, Tz, Sxy, Sxz, Syz, Pxy, Pxz, Pyz, DEN, MASS")
-W("    3, USER , C%d-ORTHO         , 0, 0, , C, NO, 0.05, 3, %.6e, %.6e, %.6e, "
-  "1.0000e-005, 1.0000e-005, 1.0000e-005, %.6e, %.6e, %.6e, 0.10, 0.10, 0.10, "
-  "2.54929e-009,     0"%(FC,0.08*Et,Et,Et,Et/2.4,Et/2.4,Et/2.4))
+W("    3, CONC , C%d               , 0, 0, , C, NO, 0.05, 2, %.4fe+001, 0.2, 1.0000e-005, 2.54929e-009,     0"%(FC,Ec/9806.65/10))
 hdr("PENAMPANG")
 W("*SECTION"); W("; iSEC, TYPE, SNAME, [OFFSET], bSD, bWE, SHAPE, [DATA]")
 for i in sorted(SEC):
@@ -385,6 +391,23 @@ W("*CONSTRAINT"); W("; NODE_LIST, CONST(Dx,Dy,Dz,Rx,Ry,Rz), GROUP")
 W("   %d, 111000, "%tie[(0.0,0)]);          W("   %d, 101000, "%tie[(B,0)])
 W("   %d, 011000, "%tie[(0.0,len(XD)-1)]);  W("   %d, 001000, "%tie[(B,len(XD)-1)])
 hdr("RIGID LINK - aksi komposit pelat lantai, lengan %.0f mm"%ZOFF)
+# --- ikat simpul bracing yang berada DI DALAM boks ke pelat boks -----------
+# Setelah bracing jadi TRUSS, simpul chord yang chord-nya sudah digantikan
+# pelat boks tidak lagi punya kekakuan rotasi. Simpul itu memang berada di
+# dalam boks, jadi harus ikut bergerak dengan boks.
+_plate_nodes=sorted({n for q in PLA for n in q[1:5] if n})
+_held={m for m,_ in RL}|{s2 for _,s2 in RL}
+import math as _mm
+_inc={}
+for _e2 in E: _inc.setdefault(_e2[3],[]).append(_e2); _inc.setdefault(_e2[4],[]).append(_e2)
+for _n,_es in sorted(_inc.items()):
+    if _n in _held or _n in set(_plate_nodes): continue
+    if any(_e2[5]!='TRUSS' for _e2 in _es): continue
+    _c=CO[_n]
+    _best=min(_plate_nodes,key=lambda q: _mm.dist(CO[q],_c))
+    if _mm.dist(CO[_best],_c)<1500.0:
+        RL.append((_best,_n))
+        print("   ikat simpul %d ke simpul pelat boks %d (jarak %.0f mm)"%(_n,_best,_mm.dist(CO[_best],_c)))
 W("*RIGIDLINK"); W("; iNO, MASTER_NODE, DOF, S_NODE_LIST, GROUP")
 for i,(m,s) in enumerate(sorted(RL),1): W("   %d, %d, 111111, %d, "%(i,m,s))
 W(""); W("; ---- mulai di sini satuan pindah ke KN, M untuk DATA BEBAN ----")

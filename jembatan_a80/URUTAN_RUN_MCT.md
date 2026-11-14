@@ -1,77 +1,86 @@
-# A80 — urutan menjalankan MCT yang sudah dipecah
+# A80 — urutan menjalankan MCT (revisi 4)
 
-File induk `A80_PELENGKUNG_FEM.mct` (302 KB, 6.796 baris) dipecah menjadi 8 bagian.
-Jalankan **berurutan** lewat **Tools → MCT Command Shell**, satu per satu,
-tunggu tiap bagian selesai tanpa error sebelum lanjut.
+## JALANKAN DI MODEL KOSONG
 
-| # | File | Isi | Baris |
-|---|------|-----|-------|
-| 1 | `A80_P1_PROPERTI.mct` | STRUCTYPE, MATERIAL, SECTION, THICKNESS, DGN-MATL, DGN-STEEL | 78 |
-| 2 | `A80_P2_SIMPUL.mct` | NODE — 2.621 simpul | 2.643 |
-| 3 | `A80_P3_ELEMEN_FRAME.mct` | ELEMENT — 1.206 batang (BEAM + 30 TRUSS) | 1.225 |
-| 4 | `A80_P4_ELEMEN_PLAT.mct` | ELEMENT — 1.624 pelat | 1.646 |
-| 5 | `A80_P5_TUMPUAN.mct` | CONSTRAINT 4 titik + RIGIDLINK 911 pasang | 941 |
-| 6 | `A80_P6_LOADCASE.mct` | STLDCASE — 13 kasus beban (nama saja) | 31 |
-| 7A | `A80_P7A_BEBAN_MATI.mct` | MS, MA | 83 |
-| 7B | `A80_P7B_BEBAN_LALULINTAS.mct` | TD-BTR, TD-BGT, TP, TB1 | 90 |
-| 7C | `A80_P7C_BEBAN_ANGIN.mct` | EWS, EWL, EWV | 32 |
-| 7D | `A80_P7D_BEBAN_SUHU.mct` | EUN, EUN-N | 29 |
-| 7E | `A80_P7E_BEBAN_GEMPA.mct` | EQX, EQY | 363 |
-| 8 | `A80_P8_KOMBINASI.mct` | LOADCOMB — 11 kombinasi | 43 |
+**File > New Project**, lalu jalankan berurutan lewat **Tools > MCT Command Shell**:
 
-## Aturan yang tidak boleh dilanggar
+| # | File | Isi |
+|---|------|-----|
+| 1 | `A80_P1_PROPERTI.mct` | STRUCTYPE, MATERIAL, SECTION, THICKNESS, DGN-MATL, DGN-STEEL |
+| 2 | `A80_P2_SIMPUL.mct` | NODE — 2.578 simpul |
+| 3 | `A80_P3_ELEMEN_FRAME.mct` | ELEMENT — 1.120 batang (974 BEAM + 146 TRUSS) |
+| 4 | `A80_P4_ELEMEN_PLAT.mct` | ELEMENT — 1.624 pelat |
+| 5 | `A80_P5_TUMPUAN.mct` | CONSTRAINT 4 titik + RIGIDLINK 915 pasang |
+| 6 | `A80_P6_LOADCASE.mct` | STLDCASE — 13 kasus beban |
+| 7A | `A80_P7A_BEBAN_MATI.mct` | MS, MA |
+| 7B | `A80_P7B_BEBAN_LALULINTAS.mct` | TD-BTR, TD-BGT, TP, TB1 |
+| 7C | `A80_P7C_BEBAN_ANGIN.mct` | EWS, EWL, EWV |
+| 7D | `A80_P7D_BEBAN_SUHU.mct` | EUN, EUN-N |
+| 7E | `A80_P7E_BEBAN_GEMPA.mct` | EQX, EQY |
+| 8 | `A80_P8_KOMBINASI.mct` | LOADCOMB — 11 kombinasi |
 
-**Urutan tidak boleh ditukar.** P1 harus lebih dulu dari P3/P4 karena elemen
-memanggil nomor penampang; P2 harus lebih dulu dari P3/P4 karena elemen memanggil
-nomor simpul; P5 harus setelah P2; P6 harus sebelum semua P7.
+## Kenapa harus model kosong
 
-**P7A–P7E hanya boleh dijalankan SATU KALI masing-masing.** midas menimpa
-simpul/elemen/penampang berdasarkan nomor, tetapi **data beban selalu ditambahkan**.
-Kalau ragu sudah pernah jalan: hapus 13 kasus beban di **Load → Static Load Cases**,
-lalu jalankan P6 dan seluruh P7 lagi dari awal.
+Revisi ini **mengurangi** jumlah batang dan simpul:
 
-P1–P5 aman diulang (menimpa, bukan menambah).
+| | revisi 3 | revisi 4 |
+|---|---|---|
+| batang | 1.206 | **1.120** |
+| simpul | 2.621 | **2.578** |
+| pelat | 1.624 | 1.624 |
+| rigid link | 911 | 915 |
 
-## Catatan perbaikan (revisi 3)
+midas menimpa berdasarkan nomor, tetapi **tidak menghapus nomor yang tidak lagi
+dipakai**. Dijalankan di atas model revisi 3, akan tertinggal:
 
-Dua koreksi pada model, keduanya **tidak mengubah profil** — justru membuat model
-sesuai gambar approval:
+- **batang 1121–1206** — 86 pipa bracing lama, jadi bracingnya **dobel**
+- **simpul 2579–2621** — 43 simpul perpotongan lama, jadi simpul yatim
 
-### 1. Segmen chord ujung salah penampang
+Pelat (5000–6623) dan rigid link tertimpa seluruhnya, tidak ada sisa.
 
-MATERIAL LIST gambar GA-ITK09-10 menyebut:
+Kalau tetap mau memakai file lama: hapus dulu **batang 1121–1206** dan
+**simpul 2579–2621**, lalu jalankan P1–P5.
 
-| Mark | Nama | Qty | Dimensi |
-|---|---|---|---|
-| A80-T1 | TOP CHORD | 4 | **WB400*500*20*30** |
-| A80-T2..T7 | TOP CHORD | 4 ea | WB400*350*20*30 |
-| A80-M1 | MIDDLE CHORD | 4 | **WB400*500*20*30** |
-| A80-M2..M7 | MIDDLE CHORD | 4 ea | WB400*350*20*30 |
+**P6 dan P7A–P7E hanya SEKALI.** Data beban selalu *ditambahkan* midas, tidak
+menggantikan. Kalau perlu diulang, hapus 13 kasus beban di
+**Load > Static Load Cases** lalu jalankan P6 dan seluruh P7 dari awal.
 
-Delapan segmen chord di ujung pelengkung memakai 400x500, dan model lama memberi
-semuanya 400x350. Penampang ARCH-END sudah ada di daftar tetapi tidak pernah
-terpasang karena salah indeks panel. Sekarang terpasang di elemen 61, 62, 87, 88,
-189, 190, 215, 216 — tepat 4 top chord + 4 middle chord.
+## Setelan GUI setelah model masuk
 
-### 2. Pelat lantai dibuat ortotropik
+**Design > Steel Design Parameter > Effective Length Factor**
 
-Ini jembatan **pelengkung bertarik**: balok tarik memang harus bisa memanjang untuk
-menahan gaya dorong pelengkung. Pada model lama pelat lantai diikat kaku ke balok
-tarik (130 rigid link DOF 111111, lengan 381 mm, tiap 1,25 m sepanjang 80 m) dengan
-kekakuan beton penuh ke segala arah. Pelat jadi melawan pemanjangan balok tarik dan
-menyuntikkan kopel momen ke dalamnya.
+- batang **PIPE6** (bracing silang): **K = 0,5**. Pada bracing silang yang
+  disambung di perpotongan, diagonal tarik menahan titik silang, jadi panjang
+  tekuk efektif setengah panjang batang (AISC/AASHTO).
+- batang **ARCH / ARCH-END** (chord pelengkung): **K = 0,75**, AASHTO LRFD
+  4.6.2.5 untuk sambungan baut/las di kedua ujung.
 
-Pelat sekarang ortotropik: arah memanjang 8% (retak), arah melintang dan vertikal
-tetap penuh sehingga sebaran beban lantai tidak berubah. Cara yang sama sudah
-terbukti jalan di B100.
+## Perubahan pada revisi 4
 
-### Batas yang perlu diketahui
+1. **Bracing PIPE6 jadi TRUSS, batang utuh tidak dipotong di perpotongan.**
+   Sambungannya pelat buhul berbaut: memikul gaya aksial, bukan momen.
+   Dimodelkan BEAM, batang ikut memikul rotasi simpul chord dan timbul momen
+   semu — 7,93 kNm pada elemen 1091, lalu diperbesar B1 = 2,53 jadi 30,9 kNm,
+   memakan 74% kapasitas lentur pipa.
+   Diagonal tidak dipotong karena simpul perpotongan hanya dipegang 4 batang
+   sebidang; kalau batangnya TRUSS simpul itu jadi mekanisme (diperiksa:
+   determinan arah = 0 di 43 simpul).
+2. **Pelat lantai dikembalikan isotropik.** Pada revisi 3 saya buat ortotropik
+   dengan alasan pelat melawan pemanjangan balok tarik. Hasil run menyanggah
+   itu: momen elemen 2 justru NAIK 4425 -> 5266 kNm dan rasionya memburuk
+   1,236 -> 1,330. Pelat ternyata ikut memikul lentur global; melemahkannya
+   membuat balok tarik memikul sendirian. Perubahan itu dibatalkan.
+3. **Empat simpul bracing di dalam boks diikat ke pelat boks** (jarak 200 mm),
+   supaya tidak menggantung setelah bracing jadi TRUSS.
 
-Dua perbaikan ini tidak menyelesaikan elemen 1091 (PIPE6, COM 1.612). Batang itu
-dikuasai kombinasi gempa EKSTREM I-EQY, dan beban gempanya memakai **asumsi
-periode T = 1,20 detik** yang belum pernah diverifikasi. Gaya gempa berbanding
-terbalik dengan T, jadi angkanya bisa berubah besar. Jalankan eigenvalue analysis
-untuk mendapat T yang sebenarnya.
+Penampang chord ujung (ARCH-END WB400x500x20x30, 8 elemen sesuai A80-T1 dan
+A80-M1 di MATERIAL LIST) dari revisi 3 tetap dipertahankan.
 
-Pipa bracing TIDAK boleh diubah jadi TRUSS: 43 titik silang X-bracing akan jadi
-mekanisme karena keempat batang di titik itu sebidang.
+## Verifikasi
+
+- 0 zona satuan salah, 0 simpul yatim, 0 slave rigid link ganda, 0 pelat luas
+  nol, 0 non-ASCII, 0 kolom beban salah
+- **0 simpul mekanisme** — setiap simpul yang hanya dipegang batang aksial
+  sudah diperiksa determinan arahnya
+- total beban dan jumlah simpul per kasus beban **identik** dengan file induk
+- 0 baris data struktur hilang saat dipecah

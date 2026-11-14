@@ -1,7 +1,22 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 4   (revisi 3)
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 4   (revisi 4)
 ; ELEMENT - 1624 pelat
-; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
+; --------------------------------------------------------------------
+; PENTING - JALANKAN DI MODEL KOSONG (File > New Project).
+;
+; Revisi ini MENGURANGI jumlah batang dan simpul:
+;    batang  1206 -> 1120      simpul  2621 -> 2578
+; midas MENIMPA berdasarkan nomor, tetapi TIDAK menghapus nomor yang
+; tidak lagi dipakai. Kalau dijalankan di atas model revisi 3, akan
+; TERTINGGAL dan menumpuk:
+;    batang 1121..1206  = 86 pipa bracing lama  -> bracing DOBEL
+;    simpul 2579..2621  = 43 simpul perpotongan -> simpul yatim
+;
+; Kalau tetap mau memakai model lama: hapus dulu batang 1121-1206 dan
+; simpul 2579-2621, lalu jalankan P1..P5. Pelat (5000-6623) dan rigid
+; link tertimpa seluruhnya, tidak ada sisa.
+; --------------------------------------------------------------------
+; Urutan: P1 P2 P3 P4 P5 P6 P7A P7B P7C P7D P7E P8. P6/P7 SEKALI saja.
 ; ====================================================================
 
 *VERSION

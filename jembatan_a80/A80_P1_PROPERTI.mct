@@ -1,7 +1,22 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 1   (revisi 3)
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 1   (revisi 4)
 ; STRUCTYPE MATERIAL SECTION THICKNESS DGN-MATL DGN-STEEL
-; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
+; --------------------------------------------------------------------
+; PENTING - JALANKAN DI MODEL KOSONG (File > New Project).
+;
+; Revisi ini MENGURANGI jumlah batang dan simpul:
+;    batang  1206 -> 1120      simpul  2621 -> 2578
+; midas MENIMPA berdasarkan nomor, tetapi TIDAK menghapus nomor yang
+; tidak lagi dipakai. Kalau dijalankan di atas model revisi 3, akan
+; TERTINGGAL dan menumpuk:
+;    batang 1121..1206  = 86 pipa bracing lama  -> bracing DOBEL
+;    simpul 2579..2621  = 43 simpul perpotongan -> simpul yatim
+;
+; Kalau tetap mau memakai model lama: hapus dulu batang 1121-1206 dan
+; simpul 2579-2621, lalu jalankan P1..P5. Pelat (5000-6623) dan rigid
+; link tertimpa seluruhnya, tidak ada sisa.
+; --------------------------------------------------------------------
+; Urutan: P1 P2 P3 P4 P5 P6 P7A P7B P7C P7D P7E P8. P6/P7 SEKALI saja.
 ; ====================================================================
 
 *VERSION
@@ -21,7 +36,7 @@
 
 
 ;--------------------------------------------------------------------------
-; SIMPUL  2621
+; SIMPUL  2578
 ;--------------------------------------------------------------------------
 
 *MATERIAL
@@ -29,11 +44,7 @@
     1, STEEL, SM490YB           , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3, 1.2000e-005, 8.00477e-009,     0
     2, STEEL, STK41             , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3, 1.2000e-005, 8.00477e-009,     0
 ; beton lantai fc' = 30 MPa, E = 25743 MPa, 25 kN/m3
-; PELAT ORTOTROPIK: arah memanjang (lokal-x = sumbu jembatan) dilemahkan
-; jadi 8% karena pada pelengkung-bertarik balok tarik HARUS bisa memanjang.
-; Arah melintang & vertikal tetap penuh supaya sebaran beban lantai benar.
-; [DATA1] : 3, Ex, Ey, Ez, Tx, Ty, Tz, Sxy, Sxz, Syz, Pxy, Pxz, Pyz, DEN, MASS
-    3, USER , C30-ORTHO         , 0, 0, , C, NO, 0.05, 3, 2.100041e-01, 2.625051e+00, 2.625051e+00, 1.0000e-005, 1.0000e-005, 1.0000e-005, 1.093771e+00, 1.093771e+00, 1.093771e+00, 0.10, 0.10, 0.10, 2.54929e-009,     0
+    3, CONC , C30               , 0, 0, , C, NO, 0.05, 2, 0.2625e+001, 0.2, 1.0000e-005, 2.54929e-009,     0
 
 ;--------------------------------------------------------------------------
 ; PENAMPANG
