@@ -1,0 +1,42 @@
+; ====================================================================
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 8 dari 8
+; LOADCOMB - 11 kombinasi
+; Jalankan BERURUTAN P1 -> P8 lewat MCT Command Shell.
+; ====================================================================
+
+*VERSION
+   8.7.5
+
+*UNIT
+; FORCE, LENGTH, HEAT, TEMPER
+   KN, M, BTU, C
+
+*LOADCOMB
+; NAME=NAME, KIND, ACTIVE, bES, iTYPE, DESC, iSERV-TYPE, nLCOMTYPE
+   NAME=KUAT I, STEEL, STRENGTH, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1.1, ST, MA, 1.4, ST, TD-BTR, 1.8, ST, TD-BGT, 1.8, ST, TP, 1.8
+        ST, TB1, 1.8, ST, EUN, 0.5
+   NAME=KUAT III, STEEL, STRENGTH, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1.1, ST, MA, 1.4, ST, EWS, 1.4, ST, EWV, 1.4, ST, EUN, 0.5
+   NAME=KUAT III-MIN, STEEL, STRENGTH, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 0.9, ST, MA, 0.7, ST, EWS, 1.4, ST, EWV, 1.4
+   NAME=KUAT IV, STEEL, STRENGTH, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1.1, ST, MA, 1.4, ST, EUN, 0.5
+   NAME=KUAT V, STEEL, STRENGTH, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1.1, ST, MA, 1.4, ST, EWS, 0.4, ST, EWL, 1, ST, EUN, 0.5
+   NAME=LAYAN I, STEEL, SERVICE, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1, ST, MA, 1, ST, TD-BTR, 1, ST, TD-BGT, 1, ST, TP, 1
+        ST, TB1, 1, ST, EWS, 0.3, ST, EWL, 1, ST, EUN, 1
+   NAME=LAYAN II, STEEL, SERVICE, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1, ST, MA, 1, ST, TD-BTR, 1.3, ST, TD-BGT, 1.3, ST, TB1, 1.3
+        ST, EUN, 1
+   NAME=LAYAN IV, STEEL, SERVICE, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1, ST, MA, 1, ST, EWS, 0.7, ST, EWV, 0.7, ST, EUN, 1
+   NAME=LENDUT-TD, STEEL, SERVICE, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, TD-BTR, 1, ST, TD-BGT, 1
+   NAME=EKSTREM I-EQX, STEEL, STRENGTH, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1.1, ST, MA, 1.4, ST, EQX, 1, ST, EQY, 0.3
+   NAME=EKSTREM I-EQY, STEEL, STRENGTH, 0, 0, SNI 1725-2016 Tabel 1, 0, 0
+        ST, MS, 1.1, ST, MA, 1.4, ST, EQX, 0.3, ST, EQY, 1
+
+*ENDDATA

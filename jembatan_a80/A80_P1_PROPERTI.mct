@@ -1,0 +1,77 @@
+; ====================================================================
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 1 dari 8
+; MATERIAL / SECTION / THICKNESS / DGN-MATL / DGN-STEEL + STRUCTYPE
+; Jalankan BERURUTAN P1 -> P8 lewat MCT Command Shell.
+; ====================================================================
+
+*VERSION
+   8.7.5
+
+*UNIT
+; FORCE, LENGTH, HEAT, TEMPER
+   TONF, MM, BTU, C
+
+*PROJINFO
+   PROJECT=Jembatan Rangka Pelengkung Kelas A - Bentang 80 m
+   CLIENT=PT Indo Trans Konstruksi
+
+*STRUCTYPE
+; iSTYP, iMASS, iSMAS, bMASSOFFSET, bSELFWEIGHT, GRAV, TEMPER, bALIGNBEAM, bALIGNSLAB, bROTRIGID
+     0, 1, 1, NO, YES, 9810, 0, NO, NO, NO
+
+
+;--------------------------------------------------------------------------
+; SIMPUL  2621
+;--------------------------------------------------------------------------
+
+*MATERIAL
+; iMAT, TYPE, MNAME, SPHEAT, HEATCO, PLAST, TUNIT, bMASS, DAMPRATIO, [DATA1]
+    1, STEEL, SM490YB           , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3, 1.2000e-005, 8.00477e-009,     0
+    2, STEEL, STK41             , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3, 1.2000e-005, 8.00477e-009,     0
+; beton lantai fc' = 30 MPa, E = 25743 MPa, 25 kN/m3
+    3, CONC , C30               , 0, 0, , C, NO, 0.05, 2, 0.2625e+001, 0.2, 1.0000e-005, 2.54929e-009,     0
+
+;--------------------------------------------------------------------------
+; PENAMPANG
+;--------------------------------------------------------------------------
+*SECTION
+; iSEC, TYPE, SNAME, [OFFSET], bSD, bWE, SHAPE, [DATA]
+   1, DBUSER    , B-TIE             , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 1000, 400, 20, 30, 0, 0, 0, 0, 0, 0
+   2, DBUSER    , ARCH-END          , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 400, 500, 20, 30, 0, 0, 0, 0, 0, 0
+   3, DBUSER    , ARCH              , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 400, 350, 20, 30, 0, 0, 0, 0, 0, 0
+   4, DBUSER    , HANGER            , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 400, 250, 12, 20, 0, 0, 0, 0, 0, 0
+   5, DBUSER    , ARCH-WEB          , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 400, 200, 12, 20, 0, 0, 0, 0, 0, 0
+   6, DBUSER    , CROSSGIRDER       , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 550, 400, 20, 30, 0, 0, 0, 0, 0, 0
+   7, DBUSER    , STRINGER          , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 450, 220, 8, 12, 0, 0, 0, 0, 0, 0
+   8, DBUSER    , PIPE6             , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 165.2, 7.1, 0, 0, 0, 0, 0, 0, 0, 0
+   9, DBUSER    , LAT-STOP          , CC, 0, 0, 0, 0, 0, 0, YES, NO, H  , 2, 850, 400, 10, 20, 0, 0, 0, 0, 0, 0
+   10, DBUSER    , FLANGE-CH         , CC, 0, 0, 0, 0, 0, 0, YES, NO, SB  , 2, 350, 30, 0, 0, 0, 0, 0, 0, 0, 0
+   11, DBUSER    , FLANGE-TIE        , CC, 0, 0, 0, 0, 0, 0, YES, NO, SB  , 2, 400, 30, 0, 0, 0, 0, 0, 0, 0, 0
+
+*THICKNESS
+; iTHK, TYPE, bSAME, THIK-IN, THIK-OUT, bOFFSET, OFFTYPE, VALUE
+    1, VALUE, YES, 250, 0,  NO, 0, 0
+    2, VALUE, YES, 60, 0,  NO, 0, 0
+    3, VALUE, YES, 20, 0,  NO, 0, 0
+    4, VALUE, YES, 12, 0,  NO, 0, 0
+    5, VALUE, YES, 30, 0,  NO, 0, 0
+    6, VALUE, YES, 35, 0,  NO, 0, 0
+
+;--------------------------------------------------------------------------
+; MUTU BAJA - SM490YB: fy 365 MPa (t<=16), 355 MPa (t>16), fu 490 MPa
+;--------------------------------------------------------------------------
+*DGN-MATL
+; iMAT, TYPE, MNAME, 2, ELAST, POISN, FU, FY1..FY6, AFT, AFT2, AFT3, FY, AFV..
+    1, STEEL, SM490YB           , 2, 2.0904e+001,   0.3, 0.0499660944, 0.0372196418, 0.0361999256, 0.0361999256, 0.0361999256, 0.0361999256, 0.0361999256, 16, 40, 100, 0.0361999256, 0, 0, 0, 0, 2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0
+    2, STEEL, STK41             , 2, 2.0904e+001,   0.3, 0.0409925918, 0.0239633310, 0.0239633310, 0.0239633310, 0.0239633310, 0.0239633310, 0.0239633310, 0, 0, 0, 0.0239633310, 0, 0, 0, 0, 2, 0, , , , 0, 0,NO,0.0000e+000,     0,, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0, 0, 0,0
+
+*DGN-STEEL
+; CODE=CODE, bBRACED, bDEFLECT, iWTL
+   CODE=AASHTO-LRFD12, YES, YES, 0
+   0, 0, 0, 0, 0
+
+;--------------------------------------------------------------------------
+; PERLETAKAN - elastomeric bearing (AS 1532-1981), 4 titik
+;--------------------------------------------------------------------------
+
+*ENDDATA
