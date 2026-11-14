@@ -5,7 +5,7 @@ import math, collections
 from geom import L,NP,A,B,YS,zT,zM,dep
 
 NDIV=4                      # pembagian panel untuk lantai -> 1250 mm
-XP=[A*i for i in range(NP+1)]                 # titik buhul pelengkung
+XP=[A*i for i in range(NP+1)]   # titik buhul pelengkung                 # titik buhul pelengkung
 XD=[A*i/NDIV for i in range(NP*NDIV+1)]       # stasiun lantai
 TSLAB=250.0; ZOFF=381.0; FC=30.0
 WROAD=7000.0; WTROT=1500.0                    # ASUMSI - lihat catatan
@@ -22,7 +22,7 @@ E=[]; _e=[0]
 def el(sec,n1,n2,mat=1):
     _e[0]+=1; E.append((_e[0],mat,sec,n1,n2)); return _e[0]
 PLA=[]; _p=[4999]
-THK={250.0:1, 60.0:2, 20.0:3, 12.0:4, 30.0:5}        # tebal -> nomor *THICKNESS
+THK={250.0:1, 60.0:2, 20.0:3, 12.0:4, 30.0:5, 35.0:6}        # tebal -> nomor *THICKNESS
 def plt(a,b,c,d,t=250.0,mat=3):
     # pelat SEGITIGA ditulis dengan simpul ke-4 = 0, bukan simpul ke-1
     # diulang (midas menolak simpul kembar pada field 1 dan 4).
@@ -57,11 +57,11 @@ for i,x in enumerate(XD):
 # (dua badan + sayap atas/bawah), dan keduanya disambung oleh PELAT
 # MELENGKUNG di sisi bawah kaki pelengkung. Daerah ini dimodelkan sebagai
 # box 3D dari elemen pelat, bukan elemen balok.
-#   badan  20 mm  |  sayap 30 mm   (WB1000x400x20x30, MATERIAL LIST)
+#   seluruh pelat box = 35 mm (badan, sayap, dan pelat melengkung)
 #   lebar box 400 mm -> badan di y = sisi +- 200
-XF=2500.0; NXF=8; NZF=4; NYF=2
+XF=5000.0; NXF=10; NZF=4; NYF=2
 BW=400.0; HW=BW/2; TIE_H=1000.0; HT=TIE_H/2
-TWEB=20.0; TFLG=30.0
+TWEB=35.0; TFLG=35.0      # tebal pelat BOX kaki pelengkung (koreksi pengguna)
 def herm(t,z0,z1,m0,m1):
     """kurva Hermite - pelat melengkung sisi bawah kaki pelengkung"""
     h00=2*t**3-3*t**2+1; h10=t**3-2*t**2+t; h01=-2*t**3+3*t**2; h11=t**3-t**2
@@ -98,21 +98,25 @@ for sd in SIDES:
         ab={}
         for i,x in enumerate(xs):
             zt_,zb_=ztop(x),zbot(x)
-            if zt_-zb_<30.0: ab[('n',i)]=0; continue
-            ab[('n',i)]=1
+            ab[('n',i)] = 1 if zt_-zb_>=60.0 else 0
             for j,y in enumerate(ys):
-                for k in range(NZF+1):
-                    if j in (0,NYF) or k in (0,NZF):
+                # sisi BAWAH selalu ada: inilah PELAT MELENGKUNG yang menerus
+                # dari sayap atas box balok tarik (z=+500) sampai chord TENGAH.
+                ab[(i,j,0)]=nd(x,y,zb_)
+                if not ab[('n',i)]: continue
+                for k in range(1,NZF+1):
+                    if j in (0,NYF) or k==NZF:
                         ab[(i,j,k)]=nd(x,y,zb_+(zt_-zb_)*k/NZF)
         for i in range(NXF):
+            # >>> PELAT MELENGKUNG - menerus sepanjang kaki pelengkung <<<
+            for j in range(NYF):
+                plt(ab[(i,j,0)],ab[(i+1,j,0)],ab[(i+1,j+1,0)],ab[(i,j+1,0)],TFLG,1)
             if not(ab[('n',i)] and ab[('n',i+1)]): continue
             for k in range(NZF):
                 for j in (0,NYF):
                     plt(ab[(i,j,k)],ab[(i+1,j,k)],ab[(i+1,j,k+1)],ab[(i,j,k+1)],TWEB,1)
             for j in range(NYF):
                 plt(ab[(i,j,NZF)],ab[(i+1,j,NZF)],ab[(i+1,j+1,NZF)],ab[(i,j+1,NZF)],TFLG,1)
-                # >>> PELAT MELENGKUNG penyambung box miring ke box balok tarik <<<
-                plt(ab[(i,j,0)],ab[(i+1,j,0)],ab[(i+1,j+1,0)],ab[(i,j+1,0)],TFLG,1)
         iend=NXF
         foot_edge[(sd,sign)]=([ab[(iend,j,k)] for j in range(NYF+1) for k in range(NZF+1)
                                if (iend,j,k) in ab],
@@ -131,11 +135,10 @@ for s in SIDES:
     for i in range(NP):
         se=2 if i in (0,NP-1) else 3
         a,b2=(tch[(s,i)],tch[(s,i+1)]); c,d2=(mch[(s,i)],mch[(s,i+1)])
-        if i in (0,NP-1):        # panel ujung: mulai dari batas pelat
-            xx=XF if i==0 else L-XF
-            a2=nd(xx,s,zT(xx)); c2=nd(xx,s,zM(xx))
-            if i==0: a,c=a2,c2
-            else:    b2,d2=a2,c2
+        xa,xb=XP[i],XP[i+1]
+        if xb<=XF or xa>=L-XF: continue      # seluruh panel di dalam box
+        if xa<XF:  a,c=nd(XF,s,zT(XF)),nd(XF,s,zM(XF))
+        if xb>L-XF: b2,d2=nd(L-XF,s,zT(L-XF)),nd(L-XF,s,zM(L-XF))
         G['T-CHORD'].append(el(se,a,b2)); G['M-CHORD'].append(el(se,c,d2))
     for i in range(1,NP):
         G['ARCH-VERT'].append(el(5,tch[(s,i)],mch[(s,i)]))
