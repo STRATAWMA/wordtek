@@ -104,7 +104,38 @@ Gambar DETAIL vektor 1:30. Kalibrasi lebar hanger A80-H16: tergambar
 Panjang/lebar teliti sekitar +-1%; **tebal pelat box 35 mm sesuai koreksi
 pengguna**.
 
+## Beban gempa - SNI 2833-2016, Timor Leste
+
+Beban statik ekuivalen, dikenakan sebagai beban simpul sebanding massa
+tributari tiap simpul (massa dihitung dari berat batang, berat pelat, dan
+beban mati yang sudah berupa beban simpul).
+
+| | |
+|---|---|
+| PGA / Ss / S1 | 0,30 / 0,70 / 0,30 g - **ASUMSI**, sama dengan proyek B100 |
+| Tanah sedang | Fpga 1,200 · Fa 1,240 · Fv 1,800 |
+| SDS / SD1 / Ts | 0,868 / 0,540 / 0,622 s |
+| **Periode T** | **1,20 s - ASUMSI** |
+| Csm = SD1/T | 0,450 |
+| R struktur atas | 1,0 (SNI 2833 ps.5.9.2) |
+| **Koefisien gempa** | **0,450** |
+| Berat permanen | 10.606 kN |
+| **Gaya gempa total** | **4.773 kN** tiap arah |
+
+Kombinasi: EKSTREM I-EQX dan EKSTREM I-EQY (SNI 2833 ps.5.8):
+`1,1 MS + 1,4 MA + 1,0 EQx + 0,3 EQy` dan sebaliknya.
+
+**Periode T belum dari analisis.** Karena Csm = SD1/T, beban gempa
+berbanding terbalik dengan T. Jalankan `Analysis > Eigenvalue` di midas,
+baca T mode pertama, lalu cukup kalikan faktor EQ di kombinasi dengan
+`1,20 / T_sebenarnya`. Contoh: kalau T = 1,8 s maka faktornya 0,667.
+
+## Perbaikan beban suhu
+EUN / EUN-N kini dikenakan ke **seluruh** elemen (2.830: batang DAN pelat).
+Sebelumnya hanya batang, sehingga baja memuai melawan lantai beton yang
+tidak ikut memuai dan timbul gaya dalam semu - itu yang membuat ikatan
+angin elemen 1091 ikut terbebani pada kombinasi Kuat III.
+
 ## BELUM termasuk
-- **Beban gempa** - lokasi jembatan belum diketahui, jadi tidak dibuat-buat.
 - **Plat buhul sebagai elemen shell** - material list memberi tebal (PL20)
   tetapi tidak memberi outline, jadi belum bisa dimodelkan setia.

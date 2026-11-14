@@ -70,7 +70,7 @@ def herm(t,z0,z1,m0,m1):
 foot_edge={}; bear_edge={}
 for sd in SIDES:
     for sign,x0 in ((+1,0.0),(-1,L)):
-        _base=[0,200,400,600,765,880,1000,1119,1300,1600,1875,2500,3125,3750,
+        _base=[0,150,310,450,600,800,1000,1200,1487,1700,2000,2500,3125,3750,
                4375,5000,5625,6250,6875,7500]
         xs=[x0+sign*v for v in _base]
         NXF=len(xs)-1
@@ -98,7 +98,7 @@ for sd in SIDES:
         import math as _m
         # FILET: busur R menyinggung sayap atas balok tarik (z=+500) dan sisi
         # bawah chord TENGAH. Kedua garis berpotongan di (XT_, 500).
-        XT_,RF=961.0,600.0
+        XT_,RF=961.0,2000.0
         _sl=0.728; _th=_m.atan(_sl)
         _t=RF*_m.tan(_th/2)                 # panjang singgung
         _x1=XT_-_t                          # awal filet (di balok tarik)
@@ -264,6 +264,59 @@ print("qBTR %.4f kPa | FBD %.3f | qBGT %.3f kN/m"%(qBTR,FBD,qBGT))
 for k,v in LD.items(): print("   %-7s %8.1f kN"%(k,sum(v.values())))
 import json; json.dump({'ok':1},open('_ok.json','w'))
 
+
+# ====================== BEBAN GEMPA - SNI 2833-2016 ======================
+# Lokasi TIMOR LESTE. Data hazard resmi belum ada, dipakai nilai yang sama
+# dengan proyek B100 (dan DITANDAI sebagai asumsi):
+#   PGA 0,30 g | Ss 0,70 g | S1 0,30 g | tanah sedang
+#   Fpga 1,200 | Fa 1,240 | Fv 1,800
+#   As = 0,360 | SDS = 0,868 | SD1 = 0,540 | Ts = SD1/SDS = 0,622 s
+# Faktor modifikasi respons R = 1 untuk struktur atas (SNI 2833 ps.5.9.2).
+# Periode T diambil 1,2 s (ASUMSI - lihat catatan). Karena Csm = SD1/T,
+# beban gempa berbanding terbalik dengan T: kalau analisis eigenvalue
+# memberi T lain, cukup kalikan faktor EQ dengan 1,2/T_sebenarnya.
+PGA,SS,S1=0.30,0.70,0.30
+FPGA,FA,FV=1.200,1.240,1.800
+SDS=FA*SS; SD1=FV*S1; TS=SD1/SDS; TEQ=1.20; REQ=1.0
+CSM = SDS if TEQ<=TS else SD1/TEQ
+COEF= CSM/REQ
+# ---- massa tributari tiap simpul (kN) ----
+GS=78.5e-9          # berat jenis baja, kN/mm3
+GC=25.0e-9          # beton
+mass=collections.defaultdict(float)
+SECA={1:(1000,400,20,30),2:(400,500,20,30),3:(400,350,20,30),4:(400,250,12,20),
+      5:(400,200,12,20),6:(550,400,20,30),7:(450,220,8,12),9:(850,400,10,20),
+      10:(350,30,0,0),11:(400,30,0,0)}
+def area(ns):
+    if ns==8: return math.pi/4*(165.2**2-(165.2-2*7.1)**2)
+    d=SECA[ns]
+    if ns in (10,11): return d[0]*d[1]
+    return 2*d[1]*d[3]+(d[0]-2*d[3])*d[2]
+for i,m,sc,a,b2,ty in E:
+    pa,pb=CO[a],CO[b2]
+    Ln=math.dist(pa,pb); w=area(sc)*Ln*GS
+    mass[a]+=w/2; mass[b2]+=w/2
+for pid,a,b2,c,d2,th,mt in PLA:
+    nn=[x for x in (a,b2,c,d2) if x]
+    P=[CO[x] for x in nn]
+    if len(nn)==4:
+        ar=abs((P[2][0]-P[0][0])*(P[3][1]-P[1][1])-(P[3][0]-P[1][0])*(P[2][1]-P[0][1]))/2
+        if ar<1: ar=abs((P[2][1]-P[0][1])*(P[3][2]-P[1][2])-(P[3][1]-P[1][1])*(P[2][2]-P[0][2]))/2
+    else:
+        ux=[P[1][k]-P[0][k] for k in range(3)]; vx=[P[2][k]-P[0][k] for k in range(3)]
+        cr=[ux[1]*vx[2]-ux[2]*vx[1],ux[2]*vx[0]-ux[0]*vx[2],ux[0]*vx[1]-ux[1]*vx[0]]
+        ar=math.sqrt(sum(q*q for q in cr))/2
+    tt=[k for k,v in THK.items() if v==th][0]
+    w=ar*tt*(GC if mt==3 else GS)
+    for x in nn: mass[x]+=w/len(nn)
+for d in (LD['MS'],LD['MA']):            # beban mati yang sudah jadi beban simpul
+    for n,v in d.items(): mass[n]+=v
+WTOT=sum(mass.values())
+print("GEMPA: SDS %.3f | SD1 %.3f | Ts %.3f s | T %.2f s | Csm %.3f | koef %.3f"
+      %(SDS,SD1,TS,TEQ,CSM,COEF))
+print("  berat permanen total %.0f kN -> gaya gempa %.0f kN"%(WTOT,COEF*WTOT))
+EQ={n:COEF*v for n,v in mass.items() if COEF*v>1e-6}
+
 # ================= TULIS MCT =================
 OUT='A80_PELENGKUNG_FEM.mct'
 Lm=L/1000.0
@@ -337,7 +390,9 @@ for n,t,d in [("MS","D","Berat sendiri baja + pelat lantai %.0f mm + trotoar 300
  ("EWS","W","Angin pada struktur PD = 2.4 kPa"),
  ("EWL","W","Angin pada kendaraan 1.46 kN/m"),
  ("EWV","W","Angin vertikal 0.96 kPa x lebar"),
- ("EUN","T","Suhu seragam naik +15 C"),("EUN-N","T","Suhu seragam turun -15 C")]:
+ ("EUN","T","Suhu seragam naik +15 C"),("EUN-N","T","Suhu seragam turun -15 C"),
+ ("EQX","E","Gempa memanjang Timor Leste - SNI 2833-2016, koef %.4f"%COEF),
+ ("EQY","E","Gempa melintang Timor Leste - SNI 2833-2016, koef %.4f"%COEF)]:
     W("   %-7s, %s, %s"%(n,t,d))
 def conload(d,note):
     W("*CONLOAD"); W("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP"); W("; "+note)
@@ -387,8 +442,22 @@ W("; angin vertikal ke atas 0.96 kPa x %.1f m dibagi 2 balok tarik"%(B/1000))
 W(bl(rng(G['TIE']),0.96*B/1000/2,"GZ",+1))
 for nm,dT in (("EUN",15.0),("EUN-N",-15.0)):
     W(""); W("*USE-STLD, %s"%nm); W("*ELTEMPER"); W("; ELEM_LIST, TEMPER, GROUP")
-    W("   %s, %.1f, "%(rng([e[0] for e in E]),dT))
-hdr("KOMBINASI BEBAN - SNI 1725-2016 Tabel 1")
+    W("; dikenakan pada SELURUH elemen - batang DAN pelat. Bila pelat lantai")
+    W("; tidak ikut memuai, baja memuai melawannya dan timbul gaya semu.")
+    W("   %s, %.1f, "%(rng([e[0] for e in E]+[q[0] for q in PLA]),dT))
+for nm,dr in (("EQX",0),("EQY",1)):
+    W(""); W("*USE-STLD, %s"%nm); W("*CONLOAD")
+    W("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP")
+    W("; gempa statik ekuivalen: koef %.4f x massa tributari tiap simpul"%COEF)
+    W("; SDS %.3f | SD1 %.3f | Ts %.3f s | T %.2f s | Csm %.3f | R %.1f"
+      %(SDS,SD1,TS,TEQ,CSM,REQ))
+    g=collections.defaultdict(list)
+    for n,v in EQ.items(): g[round(v,4)].append(n)
+    for v in sorted(g,reverse=True):
+        fx,fy=(v,0.0) if dr==0 else (0.0,v)
+        W("   %s, %.4f, %.4f, 0, 0, 0, 0, "%(rng(g[v]),fx,fy))
+
+hdr("KOMBINASI BEBAN - SNI 1725-2016 Tabel 1 + SNI 2833-2016 ps.5.8")
 W("*LOADCOMB"); W("; NAME=NAME, KIND, ACTIVE, bES, iTYPE, DESC, iSERV-TYPE, nLCOMTYPE")
 CB=[("KUAT I","STRENGTH",[("MS",1.1),("MA",1.4),("TD-BTR",1.8),("TD-BGT",1.8),("TP",1.8),("TB1",1.8),("EUN",0.5)]),
  ("KUAT III","STRENGTH",[("MS",1.1),("MA",1.4),("EWS",1.4),("EWV",1.4),("EUN",0.5)]),
@@ -398,7 +467,9 @@ CB=[("KUAT I","STRENGTH",[("MS",1.1),("MA",1.4),("TD-BTR",1.8),("TD-BGT",1.8),("
  ("LAYAN I","SERVICE",[("MS",1.0),("MA",1.0),("TD-BTR",1.0),("TD-BGT",1.0),("TP",1.0),("TB1",1.0),("EWS",0.3),("EWL",1.0),("EUN",1.0)]),
  ("LAYAN II","SERVICE",[("MS",1.0),("MA",1.0),("TD-BTR",1.3),("TD-BGT",1.3),("TB1",1.3),("EUN",1.0)]),
  ("LAYAN IV","SERVICE",[("MS",1.0),("MA",1.0),("EWS",0.7),("EWV",0.7),("EUN",1.0)]),
- ("LENDUT-TD","SERVICE",[("TD-BTR",1.0),("TD-BGT",1.0)])]
+ ("LENDUT-TD","SERVICE",[("TD-BTR",1.0),("TD-BGT",1.0)]),
+ ("EKSTREM I-EQX","STRENGTH",[("MS",1.1),("MA",1.4),("EQX",1.0),("EQY",0.3)]),
+ ("EKSTREM I-EQY","STRENGTH",[("MS",1.1),("MA",1.4),("EQX",0.3),("EQY",1.0)])]
 for nm,kd,t in CB:
     W("   NAME=%s, STEEL, %s, 0, 0, SNI 1725-2016 Tabel 1, 0, 0"%(nm,kd))
     for k in range(0,len(t),5):
