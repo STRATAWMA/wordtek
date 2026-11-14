@@ -191,6 +191,38 @@ for b in B_STR:
         for p,n in plates:
             A("   %d, PLATE , 3, 4, %d, %d, %d, %d, 1, 0, 0"%(p,n[0],n[1],n[2],n[3]))
         continue
+    if nm=='LINELANE':
+        # Jalur beban bergerak menunjuk elemen stringer. Karena stringer kini
+        # dipecah 4 per panel, daftar elemennya harus dipetakan ulang dan
+        # diurutkan menurut x supaya jalurnya menerus.
+        A(b[1])
+        lane=None; ents=[]
+        def flush():
+            if lane is None: return
+            A(lane)
+            ids=[]
+            for e in ents: ids.extend(emap.get(e,[e]))
+            def xmid(e):
+                for g in newelems:
+                    if int(g[0])==e:
+                        return (nodes[int(g[4])][0]+nodes[int(g[5])][0])/2
+                f=elems[e]; return (nodes[int(f[4])][0]+nodes[int(f[5])][0])/2
+            ids.sort(key=xmid)
+            for k in range(0,len(ids),3):
+                A("         "+",   ".join("%d, 0, 0, NO, 0"%e for e in ids[k:k+3]))
+        for l in b[2]:
+            t=l.strip()
+            if not t or t.startswith(';'):
+                if lane is None: A(l)
+                continue
+            if t.startswith('NAME='):
+                flush(); lane=l; ents=[]
+            else:
+                f=[x.strip() for x in t.split(',')]
+                for k in range(0,len(f),5):
+                    if f[k]: ents.append(int(f[k]))
+        flush()
+        continue
     if nm=='MATERIAL':
         A(b[1]); L.extend(b[2])
         E=4700*math.sqrt(FC)/9806.65          # tonf/mm2
