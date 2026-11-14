@@ -6480,8 +6480,8 @@
    EWV    , W, Angin vertikal 0.96 kPa x lebar
    EUN    , T, Suhu seragam naik +15 C
    EUN-N  , T, Suhu seragam turun -15 C
-   EQX    , E, Gempa memanjang Timor Leste - SNI 2833-2016, koef 0.4500
-   EQY    , E, Gempa melintang Timor Leste - SNI 2833-2016, koef 0.4500
+   EQX    , E, Gempa memanjang Timor Leste - SNI 2833-2016 - koef 0.4500
+   EQY    , E, Gempa melintang Timor Leste - SNI 2833-2016 - koef 0.4500
 
 ;--------------------------------------------------------------------------
 ; DATA BEBAN - jalankan SATU KALI saja

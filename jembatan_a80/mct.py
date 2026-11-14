@@ -391,9 +391,9 @@ for n,t,d in [("MS","D","Berat sendiri baja + pelat lantai %.0f mm + trotoar 300
  ("EWL","W","Angin pada kendaraan 1.46 kN/m"),
  ("EWV","W","Angin vertikal 0.96 kPa x lebar"),
  ("EUN","T","Suhu seragam naik +15 C"),("EUN-N","T","Suhu seragam turun -15 C"),
- ("EQX","E","Gempa memanjang Timor Leste - SNI 2833-2016, koef %.4f"%COEF),
- ("EQY","E","Gempa melintang Timor Leste - SNI 2833-2016, koef %.4f"%COEF)]:
-    W("   %-7s, %s, %s"%(n,t,d))
+ ("EQX","E","Gempa memanjang Timor Leste - SNI 2833-2016 - koef %.4f"%COEF),
+ ("EQY","E","Gempa melintang Timor Leste - SNI 2833-2016 - koef %.4f"%COEF)]:
+    W("   %-7s, %s, %s"%(n,t,d.replace(",", " -")))   # koma di DESC ditolak parser
 def conload(d,note):
     W("*CONLOAD"); W("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP"); W("; "+note)
     g=collections.defaultdict(list)
