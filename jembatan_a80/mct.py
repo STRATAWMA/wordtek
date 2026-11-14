@@ -59,7 +59,8 @@ for i,x in enumerate(XD):
 # box 3D dari elemen pelat, bukan elemen balok.
 #   seluruh pelat box = 35 mm (badan, sayap, dan pelat melengkung)
 #   lebar box 400 mm -> badan di y = sisi +- 200
-XF=5000.0; NXF=10; NZF=4; NYF=2
+XF=7500.0; NXF=12; NZF=4; NYF=2      # box pelengkung 0..7500 (garis oranye)
+XT=2500.0                             # box balok tarik 0..2500 (sambungan B3|B1)
 BW=400.0; HW=BW/2; TIE_H=1000.0; HT=TIE_H/2
 TWEB=35.0; TFLG=35.0      # tebal pelat BOX kaki pelengkung (koreksi pengguna)
 def herm(t,z0,z1,m0,m1):
@@ -69,16 +70,20 @@ def herm(t,z0,z1,m0,m1):
 foot_edge={}; bear_edge={}
 for sd in SIDES:
     for sign,x0 in ((+1,0.0),(-1,L)):
-        xs=[x0+sign*XF*k/NXF for k in range(NXF+1)]
+        _base=[0,200,400,600,765,880,1000,1119,1300,1600,1875,2500,3125,3750,
+               4375,5000,5625,6250,6875,7500]
+        xs=[x0+sign*v for v in _base]
+        NXF=len(xs)-1
+        xt=[x0+sign*XT*k/4 for k in range(5)]
         ys=[sd-HW+BW*j/NYF for j in range(NYF+1)]
         # ---------- BOX BALOK TARIK ----------
         zs=[-HT+TIE_H*k/NZF for k in range(NZF+1)]
         tb={}
-        for i,x in enumerate(xs):
+        for i,x in enumerate(xt):
             for j,y in enumerate(ys):
                 for k,z in enumerate(zs):
                     if j in (0,NYF) or k in (0,NZF): tb[(i,j,k)]=nd(x,y,z)
-        for i in range(NXF):
+        for i in range(4):
             for k in range(NZF):                       # dua badan
                 for j in (0,NYF):
                     plt(tb[(i,j,k)],tb[(i+1,j,k)],tb[(i+1,j,k+1)],tb[(i,j,k+1)],TWEB,1)
@@ -90,11 +95,23 @@ for sd in SIDES:
         # sisi BAWAH : PELAT MELENGKUNG dari sayap atas balok tarik (z=+500)
         #              ke sisi bawah chord TENGAH (zM - 200), mulus (Hermite)
         xe=x0+sign*XF
-        zb1=zM(xe)-200.0; m1=(zM(xe)-zM(xe-sign*500.0))/500.0*XF   # kemiringan ujung
-        def ztop(x): return max(HT, zT(abs(x if sign>0 else L-x))+200.0)
+        import math as _m
+        # FILET: busur R menyinggung sayap atas balok tarik (z=+500) dan sisi
+        # bawah chord TENGAH. Kedua garis berpotongan di (XT_, 500).
+        XT_,RF=961.0,600.0
+        _sl=0.728; _th=_m.atan(_sl)
+        _t=RF*_m.tan(_th/2)                 # panjang singgung
+        _x1=XT_-_t                          # awal filet (di balok tarik)
+        _x2=XT_+_t*_m.cos(_th)              # akhir filet (di chord tengah)
+        _cz=HT+RF
+        def ztop(x):
+            xx=abs(x) if sign>0 else L-abs(x); return zT(xx)+200.0
         def zbot(x):
-            t=abs(x-x0)/XF
-            return herm(t,HT,zb1,0.0,m1)                # mulai mendatar -> melengkung
+            xx=abs(x) if sign>0 else L-abs(x)
+            zc=zM(xx)-200.0
+            if xx>=_x2: return zc
+            if xx<=_x1: return HT
+            return _cz-_m.sqrt(max(RF*RF-(xx-_x1)**2,1.0))
         ab={}
         for i,x in enumerate(xs):
             zt_,zb_=ztop(x),zbot(x)
@@ -117,11 +134,12 @@ for sd in SIDES:
                     plt(ab[(i,j,k)],ab[(i+1,j,k)],ab[(i+1,j,k+1)],ab[(i,j,k+1)],TWEB,1)
             for j in range(NYF):
                 plt(ab[(i,j,NZF)],ab[(i+1,j,NZF)],ab[(i+1,j+1,NZF)],ab[(i,j+1,NZF)],TFLG,1)
-        iend=NXF
-        foot_edge[(sd,sign)]=([ab[(iend,j,k)] for j in range(NYF+1) for k in range(NZF+1)
-                               if (iend,j,k) in ab],
-                              [tb[(iend,j,k)] for j in range(NYF+1) for k in range(NZF+1)
-                               if (iend,j,k) in tb],xe)
+        foot_edge[(sd,sign)]=([ab[(NXF,j,k)] for j in range(NYF+1) for k in range(NZF+1)
+                               if (NXF,j,k) in ab],
+                              [tb[(4,j,k)] for j in range(NYF+1) for k in range(NZF+1)
+                               if (4,j,k) in tb], xe, x0+sign*XT,
+                              [ab[(8,j,k)] for j in range(NYF+1) for k in range(NZF+1)
+                               if (8,j,k) in ab])   # penampang di x=5000 utk hanger
         # diafragma perletakan: simpul tumpuan diikat ke penampang ujung box
         bear_edge[(sd,sign)]=(nd(x0,sd,0.0),
                               [tb[(0,j,k)] for j in range(NYF+1) for k in range(NZF+1)
@@ -130,7 +148,7 @@ for sd in SIDES:
 for s in SIDES:
     for i in range(len(XD)-1):
         xm=(XD[i]+XD[i+1])/2
-        if xm<XF or xm>L-XF: continue           # diganti pelat
+        if xm<XT or xm>L-XT: continue           # diganti box balok tarik
         G['TIE'].append(el(1,tie[(s,i)],tie[(s,i+1)]))
     for i in range(NP):
         se=2 if i in (0,NP-1) else 3
@@ -141,10 +159,13 @@ for s in SIDES:
         if xb>L-XF: b2,d2=nd(L-XF,s,zT(L-XF)),nd(L-XF,s,zM(L-XF))
         G['T-CHORD'].append(el(se,a,b2)); G['M-CHORD'].append(el(se,c,d2))
     for i in range(1,NP):
-        G['ARCH-VERT'].append(el(5,tch[(s,i)],mch[(s,i)]))
+        inbox = XP[i]<XF or XP[i]>L-XF
+        if not inbox:                       # di dalam box sudah jadi pelat
+            G['ARCH-VERT'].append(el(5,tch[(s,i)],mch[(s,i)]))
         G['HANGER'].append(el(4,mch[(s,i)],tie[(s,i*NDIV)]))
     for i in range(1,NP-1):
         a,b2=(i,i+1) if i<NP//2 else (i+1,i)
+        if min(XP[a],XP[b2])<XF or max(XP[a],XP[b2])>L-XF: continue
         G['ARCH-DIAG'].append(el(5,tch[(s,a)],mch[(s,b2)]))
 for i in range(len(XD)):
     if i%NDIV: continue
@@ -175,14 +196,19 @@ RL=[(deck[(i,y)],slab[(i,y)]) for i in range(len(XD)) for y in YALL]
 # --- peralihan PELAT -> BALOK di batas kaki pelengkung (x = XF) ---
 # Penampang pelat di garis potong diikat ke simpul balok chord/balok tarik
 # supaya gaya tersalur merata, bukan lewat dua simpul sudut saja.
-for (sd,sign),(arch,tieb,xx) in foot_edge.items():
+for (sd,sign),(arch,tieb,xx,xt,sec5) in foot_edge.items():
     mT=nd(xx,sd,zT(xx))                       # simpul balok chord ATAS
     mM=nd(xx,sd,zM(xx))                       # simpul balok chord TENGAH
     for n in set(arch)|{mM}:
         if n!=mT: RL.append((mT,n))
-    mB=nd(xx,sd,0.0)                          # simpul balok tarik
+    mB=nd(xt,sd,0.0)                          # simpul balok tarik di x=2500
     for n in set(tieb):
         if n!=mB: RL.append((mB,n))
+    # puncak hanger di x=5000 ada di dalam box -> ikat ke penampang box
+    xh=xx-(xx-xt)/ (xx-xt) * 0 ; xh = (0.0 if sign>0 else L) + sign*5000.0
+    mh=nd(xh,sd,zM(xh))
+    for n in set(sec5):
+        if n!=mh: RL.append((mh,n))
 for (sd,sign),(mb,sec) in bear_edge.items():     # diafragma di perletakan
     for n in set(sec):
         if n!=mb: RL.append((mb,n))
