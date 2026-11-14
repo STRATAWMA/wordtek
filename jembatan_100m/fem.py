@@ -120,14 +120,75 @@ for y in YL:
     miss=[x for x in XS if (x,y) not in nodeat]
     assert not miss, (y,miss[:4])
 
-# ------------------------------------------------------------ elemen pelat
+# -------------------------------- lapisan simpul pelat + elemen pelat
+# Pelat TIDAK berbagi simpul dengan balok. Ia punya lapisan simpul sendiri
+# setinggi ZOFF di atas sumbu balok, dan disambung RIGID LINK 111111.
+# Dengan begitu aksi kompositnya eksplisit dan terlihat di GUI, tidak
+# bergantung pada tafsir medan offset pada blok *THICKNESS.
+S0=3000
+slab={}                       # (x,y) -> simpul pelat
+sn=S0
+for i,x in enumerate(XS):
+    for y in YL:
+        base=nodeat[(x,y)]; bx,by,bz=nodes[base]
+        sn+=1; slab[(x,y)]=sn; nodes[sn]=[bx,by,bz+ZOFF]
 plates=[]; pid=P0
 for i in range(len(XS)-1):
     for j in range(len(YL)-1):
         pid+=1
-        n=[nodeat[(XS[i],YL[j])],nodeat[(XS[i+1],YL[j])],
-           nodeat[(XS[i+1],YL[j+1])],nodeat[(XS[i],YL[j+1])]]
+        n=[slab[(XS[i],YL[j])],slab[(XS[i+1],YL[j])],
+           slab[(XS[i+1],YL[j+1])],slab[(XS[i],YL[j+1])]]
         plates.append((pid,n))
+rlinks=[(nodeat[k],slab[k]) for k in slab]        # (master balok, slave pelat)
+
+# ---------------- tributari tiap simpul pelat (untuk beban simpul) --------
+def trib_x(i):
+    lo=XS[i-1] if i>0 else XS[0]; hi=XS[i+1] if i<len(XS)-1 else XS[-1]
+    return ((XS[i]-lo)+(hi-XS[i]))/2/1000.0            # m
+def trib_y(j):
+    lo=YL[j-1] if j>0 else YL[0]; hi=YL[j+1] if j<len(YL)-1 else YL[-1]
+    return ((YL[j]-lo)/2+(hi-YL[j])/2)                 # mm
+def ytrib_range(j):
+    lo=(YL[j-1]+YL[j])/2 if j>0 else YL[0]
+    hi=(YL[j]+YL[j+1])/2 if j<len(YL)-1 else YL[-1]
+    return lo,hi
+def qint(j,strips):
+    """integral q(y) dy pada tributari simpul baris j -> kN/m"""
+    lo,hi=ytrib_range(j); t=0.0
+    for a,b,q in strips:
+        o=max(0.0,min(hi,b)-max(lo,a)); t+=q*o/1000.0
+    return t
+# strip melintang (mm, kPa)
+S_TROT=[(0,500,7.50),(7100,7600,7.50)]               # beton trotoar 300 mm
+S_ASP =[(800,6800,1.10)]                             # aspal 50 mm
+S_BTR =[(800,1050,5.85*0.5),(1050,6550,5.85),(6550,6800,5.85*0.5)]
+S_BGT =[(800,1050,63.7*0.5),(1050,6550,63.7),(6550,6800,63.7*0.5)]
+S_TP  =[(0,500,5.0),(7100,7600,5.0)]
+XBGT=XS[28]                                          # x = 46.6655 m
+def nodal(strips,line_w=0.0):
+    """{simpul: gaya kN} dari strip melintang + beban garis di tepi"""
+    d={}
+    for i,x in enumerate(XS):
+        ax=trib_x(i)
+        for j,y in enumerate(YL):
+            P=qint(j,strips)*ax
+            if line_w and y in (YL[0],YL[-1]): P+=line_w*ax
+            if P>1e-9: d[slab[(x,y)]]=P
+    return d
+def nodal_line(strips,x):
+    d={}
+    for j,y in enumerate(YL):
+        P=qint(j,strips)
+        if P>1e-9: d[slab[(x,y)]]=P
+    return d
+LOAD_MS = nodal(S_TROT)
+LOAD_MA = nodal(S_ASP, line_w=0.5)                   # aspal + sandaran 0.5 kN/m
+LOAD_BTR= nodal(S_BTR)
+LOAD_BGT= nodal_line(S_BGT,XBGT)
+LOAD_TP = nodal(S_TP)
+for nm,d,t in (("MS-trotoar",LOAD_MS,750.0),("MA",LOAD_MA,760.0),
+               ("TD-BTR",LOAD_BTR,3363.7),("TD-BGT",LOAD_BGT,366.3),("TP",LOAD_TP,500.0)):
+    v=sum(d.values()); assert abs(v-t)<2.0,(nm,v,t); print("  %-10s %8.1f kN (target %.1f)"%(nm,v,t))
 
 # --------------------------------------------------- daftar elemen stringer
 def line_elems(y):
@@ -165,17 +226,24 @@ for b in B_STR:
     if nm=='_PRE': A(b[1]); continue
     if nm=='ENDDATA': continue          # bagian beban masih menyusul
     if nm=='RIGIDLINK':
-        hdr("RIGID LINK DIHAPUS")
-        A("; Pelat beton 262 mm kini dimodelkan sebagai elemen PLATE dan menjadi")
-        A("; diafragma lantai yang sebenarnya, jadi *RIGIDLINK tidak diperlukan.")
-        A("; Ini juga menghilangkan gaya aksial palsu pada stringer yang timbul")
-        A("; karena DOF Dx dulu dikekang ke chord bawah.")
+        A("*RIGIDLINK")
+        A("; iNO, MASTER_NODE, DOF, S_NODE_LIST, GROUP")
+        A("; SAMBUNGAN KOMPOSIT: tiap simpul balok lantai (master) mengikat satu")
+        A("; simpul pelat di atasnya (slave) dengan 6 DOF. Lengan %.0f mm itulah"%ZOFF)
+        A("; yang memberi aksi komposit penuh antara pelat beton dan baja.")
+        A("; Diafragma lantai yang lama (DOF Dx ke chord bawah) sudah tidak ada -")
+        A("; pelat beton sendiri yang kini jadi diafragma.")
+        for i,(m,sl) in enumerate(sorted(rlinks),1):
+            A("   %d, %d, 111111, %d, "%(i,m,sl))
         continue
     if nm=='NODE':
         A(b[1]); L.extend(b[2])
         A("; --- simpul tambahan: pembagian panel menjadi %d bagian ---"%NDIV)
         for n in newnodes:
             x,y,z=nodes[n]; A("   %d, %.4f, %.4f, %.4f"%(n,x,y,z))
+        A("; --- lapisan simpul PELAT LANTAI, +%.0f mm di atas sumbu balok ---"%ZOFF)
+        for k in sorted(slab, key=lambda t:(t[0],t[1])):
+            n=slab[k]; x,y,z=nodes[n]; A("   %d, %.4f, %.4f, %.4f"%(n,x,y,z))
         continue
     if nm=='ELEMENT':
         A(b[1])
@@ -232,56 +300,54 @@ for b in B_STR:
         continue
     if nm=='THICKNESS':
         A(b[1]); L.extend(b[2])
-        A("; pelat lantai: tebal %.0f mm, bidang tengahnya di +%.0f mm dari sumbu"%(TSLAB,ZOFF))
-        A("; balok lantai -> inilah yang memberi AKSI KOMPOSIT (lengan kopel).")
-        A("    4, VALUE, YES, %.0f, 0, YES, 0, %.0f"%(TSLAB,ZOFF))
+        A("; pelat lantai 262 mm TANPA offset: eksentrisitas terhadap balok sudah")
+        A("; diwakili lapisan simpul pelat +%.0f mm + RIGID LINK (aksi komposit)."%ZOFF)
+        A("    4, VALUE, YES, %.0f, 0,  NO, 0, 0"%TSLAB)
         continue
     A(b[1]); L.extend(b[2])
 
 # ------------------------------------------------------------ bagian beban
+# Beban lantai (berat trotoar, aspal, lajur D, pejalan kaki) TIDAK lagi
+# ditaruh di balok. Semuanya jadi BEBAN SIMPUL pada pelat lantai, dibagi
+# menurut luas tributari tiap simpul, lalu disalurkan pelat -> rigid link ->
+# balok lantai -> rangka. Dipakai beban simpul, bukan *PRESSURE, karena
+# urutan field *PRESSURE tidak dapat dipastikan untuk versi 8.7.5.
+REPL={'MS':LOAD_MS,'MA':LOAD_MA,'TD-BTR':LOAD_BTR,'TD-BGT':LOAD_BGT,'TP':LOAD_TP}
+NOTE={'MS':'berat beton trotoar 300 mm (berat pelat 262 mm dari *SELFWEIGHT)',
+      'MA':'aspal 50 mm pada jalur 0.80-6.80 m + sandaran 0.5 kN/m di tepi',
+      'TD-BTR':'BTR 5.85 kPa, 100% pada 5.5 m tengah + 50% pada sisanya',
+      'TD-BGT':'BGT 63.7 kN/m, garis pisau melintang di x = 46.666 m',
+      'TP':'pejalan kaki 5 kPa pada trotoar 2 x 0.5 m'}
+def conload(d,note):
+    A("*CONLOAD")
+    A("; NODE_LIST, FX, FY, FZ, MX, MY, MZ, GROUP")
+    A("; "+note)
+    g=collections.defaultdict(list)
+    for n,v in d.items(): g[round(v,4)].append(n)
+    for v in sorted(g,reverse=True):
+        A("   %s, 0, 0, %.4f, 0, 0, 0, "%(rng(g[v]),-v))
+cur=None
 for b in B_LOD:
     nm=b[0]
     if nm=='_PRE': continue
-    if nm=='BEAMLOAD':
-        A(b[1])
-        for l in b[2]:
-            s=l.strip()
-            if not s or s.startswith(';'): A(l); continue
-            f=[x.strip() for x in l.rstrip().split(',')]
-            f[0]=remap(f[0]); A("   "+", ".join(f))
+    if nm=='USE-STLD':
+        cur=b[1].split(',')[1].strip(); A(b[1]); L.extend(b[2]); continue
+    if nm in ('BEAMLOAD','CONLOAD') and cur in REPL:
+        if nm=='BEAMLOAD': conload(REPL[cur],NOTE[cur])
         continue
-    if nm=='ELTEMPER':
+    if nm in ('BEAMLOAD','ELTEMPER'):
         A(b[1])
         for l in b[2]:
-            s=l.strip()
-            if not s or s.startswith(';'): A(l); continue
+            t=l.strip()
+            if not t or t.startswith(';'): A(l); continue
             f=[x.strip() for x in l.rstrip().split(',')]
             f[0]=remap(f[0]); A("   "+", ".join(f))
         continue
     A(b[1]); L.extend(b[2])
 
 txt="\n".join(L)
-
-# ---- MS: berat pelat sudah dari SELFWEIGHT, sisakan trotoar saja ----
-m=re.search(r'(\*USE-STLD, MS.*?)(?=\*USE-STLD, MA)', txt, re.S)
-blockMS=m.group(1)
-keep=[]
-for l in blockMS.split('\n'):
-    if 'UNILOAD' in l and not l.strip().startswith(';'): continue
-    keep.append(l)
-ins=("; Berat pelat 262 mm TIDAK lagi beban balok - sudah dipikul elemen PLATE\n"
-     "; lewat *SELFWEIGHT. Yang tersisa hanya beton trotoar 300 mm x 0.5 m.\n"
-     "   %s, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -3.7500, 1, -3.7500, 0, 0, 0, 0, \n"
-     "   %s, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, -3.7500, 1, -3.7500, 0, 0, 0, 0, "
-     %(rng(STRL[500]),rng(STRL[7100])))
-out=[]
-for l in keep:
-    out.append(l)
-    if l.strip().startswith('; ELEM_LIST'): out.append(ins)
-txt=txt.replace(blockMS,"\n".join(out)+"\n")
-
 open(OUT,'w').write(txt+"\n")
-print("simpul lama %d + baru %d"%(len(nodes)-len(newnodes),len(newnodes)))
+print("simpul: %d balok (203 lama + %d baru) + %d pelat = %d"%(203+len(newnodes),len(newnodes),len(slab),len(nodes)))
 print("elemen balok dipecah: %d -> %d sub-elemen"%(len(SPLIT),len(newelems)))
-print("elemen PLATE: %d  (%d x %d)"%(len(plates),len(XS)-1,len(YL)-1))
+print("elemen PLATE: %d (%d x %d) | rigid link komposit: %d"%(len(plates),len(XS)-1,len(YL)-1,len(rlinks)))
 print("tulis",OUT,len(txt.split('\n')),"baris")
