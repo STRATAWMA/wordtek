@@ -19,8 +19,8 @@ def nd(x,y,z):
         _n[0]+=1; N[k]=_n[0]; ORD.append((_n[0],k)); CO[_n[0]]=k
     return N[k]
 E=[]; _e=[0]
-def el(sec,n1,n2,mat=1):
-    _e[0]+=1; E.append((_e[0],mat,sec,n1,n2)); return _e[0]
+def el(sec,n1,n2,mat=1,typ='BEAM'):
+    _e[0]+=1; E.append((_e[0],mat,sec,n1,n2,typ)); return _e[0]
 PLA=[]; _p=[4999]
 THK={250.0:1, 60.0:2, 20.0:3, 12.0:4, 30.0:5, 35.0:6}        # tebal -> nomor *THICKNESS
 def plt(a,b,c,d,t=250.0,mat=3):
@@ -162,7 +162,7 @@ for s in SIDES:
         inbox = XP[i]<XF or XP[i]>L-XF
         if not inbox:                       # di dalam box sudah jadi pelat
             G['ARCH-VERT'].append(el(5,tch[(s,i)],mch[(s,i)]))
-        G['HANGER'].append(el(4,mch[(s,i)],tie[(s,i*NDIV)]))
+        G['HANGER'].append(el(4,mch[(s,i)],tie[(s,i*NDIV)],typ='TRUSS'))
     for i in range(1,NP-1):
         a,b2=(i,i+1) if i<NP//2 else (i+1,i)
         if min(XP[a],XP[b2])<XF or max(XP[a],XP[b2])>L-XF: continue
@@ -287,7 +287,7 @@ for n,(x,y,z) in ORD: W("   %d, %.4f, %.4f, %.4f"%(n,x,y,z))
 hdr("ELEMEN  %d batang + %d pelat lantai"%(len(E),len(PLA)))
 W("*ELEMENT")
 W("; iEL, TYPE, iMAT, iPRO, iN1, iN2, ANGLE, iSUB")
-for i,m,s,a,b2 in E: W("   %d, BEAM  , %d, %d, %d, %d, 0, 0"%(i,m,s,a,b2))
+for i,m,s,a,b2,ty in E: W("   %d, %-6s, %d, %d, %d, %d, 0, 0"%(i,ty,m,s,a,b2))
 W("; iEL, TYPE, iMAT, iPRO, iN1, iN2, iN3, iN4, iSUB(1=Thick), iWID, LCAXIS")
 for p,a,b2,c,d,th,mt in PLA: W("   %d, PLATE , %d, %d, %d, %d, %d, %d, 1, 0, 0"%(p,mt,th,a,b2,c,d))
 hdr("MATERIAL")
