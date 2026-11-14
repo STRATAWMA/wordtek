@@ -1,0 +1,31 @@
+; ====================================================================
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7C dari 8+
+; Angin - struktur, kendaraan, vertikal - JALANKAN SATU KALI
+; ====================================================================
+
+*VERSION
+   8.7.5
+
+*UNIT
+; FORCE, LENGTH, HEAT, TEMPER
+   KN, M, BTU, C
+
+*USE-STLD, EWS
+*BEAMLOAD
+; PD 2.4 kPa x tinggi profil: chord pelengkung dan balok tarik
+   61to88 189to216, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 0.9600, 1, 0.9600, 0, 0, 0, 0, 
+   1to60 129to188, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 2.4000, 1, 2.4000, 0, 0, 0, 0, 
+
+
+*USE-STLD, EWL
+*BEAMLOAD
+; angin kendaraan 1.46 kN/m dibagi 2 balok tarik
+   1to60 129to188, BEAM, UNILOAD, GY, NO, NO, LZ, 0, 0, NO, 0, 0.7300, 1, 0.7300, 0, 0, 0, 0, 
+
+
+*USE-STLD, EWV
+*BEAMLOAD
+; angin vertikal ke atas 0.96 kPa x 10.0 m dibagi 2 balok tarik
+   1to60 129to188, BEAM, UNILOAD, GZ, NO, NO, LZ, 0, 0, NO, 0, 4.8000, 1, 4.8000, 0, 0, 0, 0, 
+
+*ENDDATA

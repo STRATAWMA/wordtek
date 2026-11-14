@@ -1,0 +1,28 @@
+; ====================================================================
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7D dari 8+
+; Suhu seragam naik dan turun - JALANKAN SATU KALI
+; ====================================================================
+
+*VERSION
+   8.7.5
+
+*UNIT
+; FORCE, LENGTH, HEAT, TEMPER
+   KN, M, BTU, C
+
+*USE-STLD, EUN
+*ELTEMPER
+; ELEM_LIST, TEMPER, GROUP
+; dikenakan pada SELURUH elemen - batang DAN pelat. Bila pelat lantai
+; tidak ikut memuai, baja memuai melawannya dan timbul gaya semu.
+   1to1206 5000to6623, 15.0, 
+
+
+*USE-STLD, EUN-N
+*ELTEMPER
+; ELEM_LIST, TEMPER, GROUP
+; dikenakan pada SELURUH elemen - batang DAN pelat. Bila pelat lantai
+; tidak ikut memuai, baja memuai melawannya dan timbul gaya semu.
+   1to1206 5000to6623, -15.0, 
+
+*ENDDATA
