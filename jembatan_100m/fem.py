@@ -18,7 +18,7 @@ SRC_STR = 'B100_1_STRUKTUR.mct'
 SRC_LOD = 'B100_2_BEBAN.mct'
 import os
 CRACK   = float(os.environ.get('CRACK','1.0'))   # 1.0 = beton utuh, 0.08 = retak
-OUT     = ('B100_FEM_KOMPOSIT_RETAK' if CRACK<1 else 'B100_FEM_KOMPOSIT')+('_V2' if os.environ.get('LINKV2','0')=='1' else '')+'.mct'
+OUT     = ('B100_FEM_KOMPOSIT_ORTHO' if os.environ.get('ORTHO','0')=='1' else ('B100_FEM_KOMPOSIT_RETAK' if CRACK<1 else 'B100_FEM_KOMPOSIT'))+('_V2' if os.environ.get('LINKV2','0')=='1' else '')+'.mct'
 NDIV    = 4                 # pembagian tiap panel
 TSLAB   = 262.0             # mm
 ZOFF    = 381.0             # mm, sumbu balok -> bidang tengah pelat (250+131)
@@ -149,6 +149,7 @@ rlinks=[(nodeat[k],slab[k],k[1]) for k in slab]   # (master balok, slave pelat, 
 #                 DILEPAS -> pelat tidak lagi menjepit chord. Garis stringer
 #                 tetap 111111 karena di situ ada shear connector.
 LINK_V2 = os.environ.get('LINKV2','0')=='1'
+ORTHO   = os.environ.get('ORTHO','0')=='1'
 DOF_CHORD = '111001' if LINK_V2 else '111111'
 
 # ---------------- tributari tiap simpul pelat (untuk beban simpul) --------
@@ -306,17 +307,37 @@ for b in B_STR:
         continue
     if nm=='MATERIAL':
         A(b[1]); L.extend(b[2])
-        E=CRACK*4700*math.sqrt(FC)/9806.65    # tonf/mm2
-        D=25.0/9.80665*1e-9                   # tonf/mm3  (beton 25 kN/m3)
-        if CRACK<1:
-            A("; LANTAI RETAK: E diturunkan ke %.0f%% Ec = %.0f MPa."%(CRACK*100,CRACK*4700*math.sqrt(FC)))
+        Ec=4700*math.sqrt(FC); D=25.0/9.80665*1e-9       # MPa, tonf/mm3
+        K=9806.65                                         # MPa -> tonf/mm2
+        if ORTHO:
+            # Pelat lantai berada setinggi chord bawah. Arah MEMANJANG ia ikut
+            # memikul tarik chord sampai jauh melampaui kuat tarik beton, jadi
+            # retak: yang tersisa hanya tulangan memanjang (~1% -> 8% Ec).
+            # Arah MELINTANG dan geser bidang TIDAK retak - retaknya melintang,
+            # tegak lurus arah itu. Karena itu dipakai material ortotropik:
+            #   Ex (memanjang) = 8% Ec ; Ey, Ez (melintang) = Ec penuh
+            #   G penuh  -> pelat tetap memikul geser bidang lantai
+            # Sumbu lokal pelat: x = arah memanjang jembatan (urutan simpul
+            # elemen PLATE dibuat n1->n2 searah sumbu X global).
+            Ex=CRACK*Ec; Ey=Ez=Ec; G=Ec/(2*(1+0.2)); nu=0.10
+            A("; beton lantai ORTOTROPIK fc' = %.0f MPa"%FC)
+            A(";   Ex memanjang = %.0f MPa (retak, %.0f%% Ec)"%(Ex,CRACK*100))
+            A(";   Ey Ez melintang = %.0f MPa (utuh)  |  G = %.0f MPa (utuh)"%(Ey,G))
+            A("; iMAT, TYPE, MNAME, SPHEAT, HEATCO, PLAST, TUNIT, bMASS, DAMPRATIO,")
+            A(";   3, Ex, Ey, Ez, Tx, Ty, Tz, Sxy, Sxz, Syz, Pxy, Pxz, Pyz, DEN, MASS")
+            A("    3, USER , C30-ORTHO         , 0, 0, , C, NO, 0.05, 3, "
+              "%.6e, %.6e, %.6e, 1.0000e-005, 1.0000e-005, 1.0000e-005, "
+              "%.6e, %.6e, %.6e, %.2f, %.2f, %.2f, %.5e,     0"
+              %(Ex/K,Ey/K,Ez/K,G/K,G/K,G/K,nu,nu,nu,D))
+        elif CRACK<1:
+            A("; LANTAI RETAK: E diturunkan ke %.0f%% Ec = %.0f MPa."%(CRACK*100,CRACK*Ec))
             A("; Lantai berada setinggi chord bawah, jadi dalam keadaan komposit ia")
             A("; ikut memikul tarik chord sampai jauh melampaui kuat tarik beton.")
             A("; Beton retak; yang tersisa hanya tulangan memanjang (dianggap ~1%).")
-            A("; Berat sendiri TIDAK berubah - hanya kekakuannya.")
+            A("    3, CONC , C30               , 0, 0, , C, NO, 0.05, 2, %.4fe+001, 0.2, 1.0000e-005, %.5fe-009,     0"%(Ec/K/10.0,D*1e9))
         else:
-            A("; beton lantai fc\' = %.0f MPa, E = %.0f MPa, berat 25 kN/m3"%(FC,4700*math.sqrt(FC)))
-        A("    3, CONC , C%d               , 0, 0, , C, NO, 0.05, 2, %.4fe+001, 0.2, 1.0000e-005, %.5fe-009,     0"%(FC,E/10.0,D*1e9))
+            A("; beton lantai fc' = %.0f MPa, E = %.0f MPa, berat 25 kN/m3"%(FC,Ec))
+            A("    3, CONC , C30               , 0, 0, , C, NO, 0.05, 2, %.4fe+001, 0.2, 1.0000e-005, %.5fe-009,     0"%(Ec/K/10.0,D*1e9))
         continue
     if nm=='THICKNESS':
         A(b[1]); L.extend(b[2])
