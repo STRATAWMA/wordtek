@@ -49,9 +49,20 @@ menggantikan. Kalau perlu diulang, hapus 13 kasus beban di
 
 **Design > Steel Design Parameter > Effective Length Factor**
 
-- batang **PIPE6** (bracing silang): **K = 0,5**. Pada bracing silang yang
-  disambung di perpotongan, diagonal tarik menahan titik silang, jadi panjang
-  tekuk efektif setengah panjang batang (AISC/AASHTO).
+- batang **PIPE6** = **elemen 1003 sampai 1118** (116 batang, satu rentang
+  utuh): **Ky = Kz = 0,5**. Pada bracing silang yang disambung di perpotongan,
+  diagonal tarik menahan titik silang, jadi panjang tekuk efektif setengah
+  panjang batang (AISC/AASHTO).
+
+  WAJIB, bukan opsional. Tanpa ini: KL/r = 213 > 120 (batas AASHTO 6.9.3) dan
+  Pu/phiPn = 1,90. Dengan K = 0,5: KL/r = 107 dan Pu/phiPn = 0,548.
+
+  **K TIDAK BISA dikirim lewat MCT.** midas tidak menulis faktor panjang
+  efektif ke file MCT - sudah diperiksa pada dua hasil ekspor midas sendiri
+  (B100_FE_v5 dan PLENGKUNG_A80_v8): tidak ada bloknya sama sekali. Buktinya
+  juga terlihat langsung: Kz = 0,85 yang pernah diset hilang dan kembali 1,0
+  begitu model dibangun ulang dari MCT. Jadi langkah ini harus lewat GUI
+  setiap kali model dibangun ulang.
 - batang **ARCH / ARCH-END** (chord pelengkung): **K = 0,75**, AASHTO LRFD
   4.6.2.5 untuk sambungan baut/las di kedua ujung.
 
