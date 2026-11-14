@@ -16,7 +16,9 @@ import re, collections, math
 
 SRC_STR = 'B100_1_STRUKTUR.mct'
 SRC_LOD = 'B100_2_BEBAN.mct'
-OUT     = 'B100_FEM_KOMPOSIT.mct'
+import os
+CRACK   = float(os.environ.get('CRACK','1.0'))   # 1.0 = beton utuh, 0.08 = retak
+OUT     = 'B100_FEM_KOMPOSIT_RETAK.mct' if CRACK<1 else 'B100_FEM_KOMPOSIT.mct'
 NDIV    = 4                 # pembagian tiap panel
 TSLAB   = 262.0             # mm
 ZOFF    = 381.0             # mm, sumbu balok -> bidang tengah pelat (250+131)
@@ -293,9 +295,16 @@ for b in B_STR:
         continue
     if nm=='MATERIAL':
         A(b[1]); L.extend(b[2])
-        E=4700*math.sqrt(FC)/9806.65          # tonf/mm2
+        E=CRACK*4700*math.sqrt(FC)/9806.65    # tonf/mm2
         D=25.0/9.80665*1e-9                   # tonf/mm3  (beton 25 kN/m3)
-        A("; beton lantai fc' = %.0f MPa, E = %.0f MPa, berat 25 kN/m3"%(FC,4700*math.sqrt(FC)))
+        if CRACK<1:
+            A("; LANTAI RETAK: E diturunkan ke %.0f%% Ec = %.0f MPa."%(CRACK*100,CRACK*4700*math.sqrt(FC)))
+            A("; Lantai berada setinggi chord bawah, jadi dalam keadaan komposit ia")
+            A("; ikut memikul tarik chord sampai jauh melampaui kuat tarik beton.")
+            A("; Beton retak; yang tersisa hanya tulangan memanjang (dianggap ~1%).")
+            A("; Berat sendiri TIDAK berubah - hanya kekakuannya.")
+        else:
+            A("; beton lantai fc\' = %.0f MPa, E = %.0f MPa, berat 25 kN/m3"%(FC,4700*math.sqrt(FC)))
         A("    3, CONC , C%d               , 0, 0, , C, NO, 0.05, 2, %.4fe+001, 0.2, 1.0000e-005, %.5fe-009,     0"%(FC,E/10.0,D*1e9))
         continue
     if nm=='THICKNESS':
