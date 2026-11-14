@@ -22,7 +22,7 @@ E=[]; _e=[0]
 def el(sec,n1,n2,mat=1):
     _e[0]+=1; E.append((_e[0],mat,sec,n1,n2)); return _e[0]
 PLA=[]; _p=[4999]
-THK={250.0:1, 60.0:2, 20.0:3, 12.0:4}        # tebal -> nomor *THICKNESS
+THK={250.0:1, 60.0:2, 20.0:3, 12.0:4, 30.0:5}        # tebal -> nomor *THICKNESS
 def plt(a,b,c,d,t=250.0,mat=3):
     # pelat SEGITIGA ditulis dengan simpul ke-4 = 0, bukan simpul ke-1
     # diulang (midas menolak simpul kembar pada field 1 dan 4).
@@ -52,46 +52,76 @@ for i,x in enumerate(XD):
     for y in YALL: slab[(i,y)]=nd(x,y,ZOFF)
 
 # --------- batang ---------
-# ====================== KAKI PELENGKUNG - MODEL SHELL ======================
-# Daerah x = 0 .. XF di kedua ujung dimodelkan sebagai PELAT, bukan balok:
-# di situ chord ATAS dan chord TENGAH menyatu jadi blok berpelat (DETAIL 3/4
-# lembar GA-ITK09-04) dan di situlah perletakan berada.
-# Tebal: badan 20 mm + PLATE BUHUL 20 mm di KEDUA sisi = 60 mm.
-# Tebal dari MATERIAL LIST (semua PLATE BUHUL = PL20) jadi TEPAT; panjang
-# dan lebar diukur dari gambar vektor 1:30, teliti sekitar +-1%.
-XF=2500.0; NXF=4; NZF=6
-TIE_TOP=470.0
-foot_edge={}
+# ====================== KAKI PELENGKUNG - BOX SHELL ======================
+# Di kedua ujung, batang pelengkung dan balok tarik berpenampang BOX
+# (dua badan + sayap atas/bawah), dan keduanya disambung oleh PELAT
+# MELENGKUNG di sisi bawah kaki pelengkung. Daerah ini dimodelkan sebagai
+# box 3D dari elemen pelat, bukan elemen balok.
+#   badan  20 mm  |  sayap 30 mm   (WB1000x400x20x30, MATERIAL LIST)
+#   lebar box 400 mm -> badan di y = sisi +- 200
+XF=2500.0; NXF=8; NZF=4; NYF=2
+BW=400.0; HW=BW/2; TIE_H=1000.0; HT=TIE_H/2
+TWEB=20.0; TFLG=30.0
+def herm(t,z0,z1,m0,m1):
+    """kurva Hermite - pelat melengkung sisi bawah kaki pelengkung"""
+    h00=2*t**3-3*t**2+1; h10=t**3-2*t**2+t; h01=-2*t**3+3*t**2; h11=t**3-t**2
+    return h00*z0+h10*m0+h01*z1+h11*m1
+foot_edge={}; bear_edge={}
 for sd in SIDES:
     for sign,x0 in ((+1,0.0),(-1,L)):
         xs=[x0+sign*XF*k/NXF for k in range(NXF+1)]
-        gr={}
+        ys=[sd-HW+BW*j/NYF for j in range(NYF+1)]
+        # ---------- BOX BALOK TARIK ----------
+        zs=[-HT+TIE_H*k/NZF for k in range(NZF+1)]
+        tb={}
         for i,x in enumerate(xs):
-            lo,hi=zM(x),zT(x)
-            rows=[lo] if hi-lo<1 else [lo+(hi-lo)*k/NZF for k in range(NZF+1)]
-            for k,z in enumerate(rows): gr[(i,k)]=nd(x,sd,z)
-            gr[('n',i)]=len(rows)
+            for j,y in enumerate(ys):
+                for k,z in enumerate(zs):
+                    if j in (0,NYF) or k in (0,NZF): tb[(i,j,k)]=nd(x,y,z)
         for i in range(NXF):
-            na,nb=gr[('n',i)],gr[('n',i+1)]
-            if na==1:
-                for k in range(nb-1): plt(gr[(i,0)],gr[(i+1,k)],gr[(i+1,k+1)],gr[(i,0)],60.0,1)
-            else:
-                for k in range(NZF): plt(gr[(i,k)],gr[(i+1,k)],gr[(i+1,k+1)],gr[(i,k+1)],60.0,1)
-        # badan balok tarik sebagai pelat pada daerah yang sama
-        zt=[-TIE_TOP+2*TIE_TOP*k/4 for k in range(5)]
-        tgd={}
+            for k in range(NZF):                       # dua badan
+                for j in (0,NYF):
+                    plt(tb[(i,j,k)],tb[(i+1,j,k)],tb[(i+1,j,k+1)],tb[(i,j,k+1)],TWEB,1)
+            for j in range(NYF):                       # sayap atas & bawah
+                for k in (0,NZF):
+                    plt(tb[(i,j,k)],tb[(i+1,j,k)],tb[(i+1,j+1,k)],tb[(i,j+1,k)],TFLG,1)
+        # ---------- BOX KAKI PELENGKUNG ----------
+        # sisi ATAS  : mengikuti chord ATAS  (zT + 200)
+        # sisi BAWAH : PELAT MELENGKUNG dari sayap atas balok tarik (z=+500)
+        #              ke sisi bawah chord TENGAH (zM - 200), mulus (Hermite)
+        xe=x0+sign*XF
+        zb1=zM(xe)-200.0; m1=(zM(xe)-zM(xe-sign*500.0))/500.0*XF   # kemiringan ujung
+        def ztop(x): return max(HT, zT(abs(x if sign>0 else L-x))+200.0)
+        def zbot(x):
+            t=abs(x-x0)/XF
+            return herm(t,HT,zb1,0.0,m1)                # mulai mendatar -> melengkung
+        ab={}
         for i,x in enumerate(xs):
-            for k,z in enumerate(zt): tgd[(i,k)]=nd(x,sd,z)
+            zt_,zb_=ztop(x),zbot(x)
+            if zt_-zb_<30.0: ab[('n',i)]=0; continue
+            ab[('n',i)]=1
+            for j,y in enumerate(ys):
+                for k in range(NZF+1):
+                    if j in (0,NYF) or k in (0,NZF):
+                        ab[(i,j,k)]=nd(x,y,zb_+(zt_-zb_)*k/NZF)
         for i in range(NXF):
-            for k in range(4): plt(tgd[(i,k)],tgd[(i+1,k)],tgd[(i+1,k+1)],tgd[(i,k+1)],20.0,1)
-        for i in range(NXF):
-            G['FLANGE-TIE'].append(el(11,tgd[(i,0)],tgd[(i+1,0)]))
-            G['FLANGE-TIE'].append(el(11,tgd[(i,4)],tgd[(i+1,4)]))
-            if gr[('n',i)]>1:
-                G['FLANGE-CH'].append(el(10,gr[(i,NZF)],gr[(i+1,NZF)]))
-                G['FLANGE-CH'].append(el(10,gr[(i,0)],gr[(i+1,0)]))
-        foot_edge[(sd,sign)]=([gr[(NXF,k)] for k in range(NZF+1)],
-                              [tgd[(NXF,k)] for k in range(5)], x0+sign*XF)
+            if not(ab[('n',i)] and ab[('n',i+1)]): continue
+            for k in range(NZF):
+                for j in (0,NYF):
+                    plt(ab[(i,j,k)],ab[(i+1,j,k)],ab[(i+1,j,k+1)],ab[(i,j,k+1)],TWEB,1)
+            for j in range(NYF):
+                plt(ab[(i,j,NZF)],ab[(i+1,j,NZF)],ab[(i+1,j+1,NZF)],ab[(i,j+1,NZF)],TFLG,1)
+                # >>> PELAT MELENGKUNG penyambung box miring ke box balok tarik <<<
+                plt(ab[(i,j,0)],ab[(i+1,j,0)],ab[(i+1,j+1,0)],ab[(i,j+1,0)],TFLG,1)
+        iend=NXF
+        foot_edge[(sd,sign)]=([ab[(iend,j,k)] for j in range(NYF+1) for k in range(NZF+1)
+                               if (iend,j,k) in ab],
+                              [tb[(iend,j,k)] for j in range(NYF+1) for k in range(NZF+1)
+                               if (iend,j,k) in tb],xe)
+        # diafragma perletakan: simpul tumpuan diikat ke penampang ujung box
+        bear_edge[(sd,sign)]=(nd(x0,sd,0.0),
+                              [tb[(0,j,k)] for j in range(NYF+1) for k in range(NZF+1)
+                               if (0,j,k) in tb])
 # =========================================================================
 for s in SIDES:
     for i in range(len(XD)-1):
@@ -142,11 +172,17 @@ RL=[(deck[(i,y)],slab[(i,y)]) for i in range(len(XD)) for y in YALL]
 # --- peralihan PELAT -> BALOK di batas kaki pelengkung (x = XF) ---
 # Penampang pelat di garis potong diikat ke simpul balok chord/balok tarik
 # supaya gaya tersalur merata, bukan lewat dua simpul sudut saja.
-for (sd,sign),(wedge,tieedge,xx) in foot_edge.items():
-    mT=wedge[-1]                       # simpul balok chord ATAS
-    for n in wedge[1:-1]: RL.append((mT,n))
-    mB=tieedge[2]                      # simpul balok tarik (z=0)
-    for n in tieedge[:2]+tieedge[3:]: RL.append((mB,n))
+for (sd,sign),(arch,tieb,xx) in foot_edge.items():
+    mT=nd(xx,sd,zT(xx))                       # simpul balok chord ATAS
+    mM=nd(xx,sd,zM(xx))                       # simpul balok chord TENGAH
+    for n in set(arch)|{mM}:
+        if n!=mT: RL.append((mT,n))
+    mB=nd(xx,sd,0.0)                          # simpul balok tarik
+    for n in set(tieb):
+        if n!=mB: RL.append((mB,n))
+for (sd,sign),(mb,sec) in bear_edge.items():     # diafragma di perletakan
+    for n in set(sec):
+        if n!=mb: RL.append((mb,n))
 
 # --------- penampang ---------
 SEC={1:("B-TIE","H",(1000,400,20,30)),2:("ARCH-END","H",(400,500,20,30)),

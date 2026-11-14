@@ -66,31 +66,36 @@ pipa STK41 (fy 235), lantai beton fc' 30 MPa.
    (216,3 x 8,2) maka KL/r = 136 dan lolos.
 4. Perletakan: 4 titik, 111000 / 101000 / 011000 / 001000.
 
-## Kaki pelengkung - MODEL SHELL
+## Kaki pelengkung - BOX dari elemen SHELL
 
-Daerah x = 0 .. 2.500 mm di KEDUA ujung dan KEDUA rangka dimodelkan sebagai
-elemen PELAT, bukan balok. Di situ chord ATAS dan chord TENGAH menyatu jadi
-blok berpelat (DETAIL 3 dan DETAIL 4, lembar GA-ITK09-04) dan di situlah
-perletakan berada.
+Di KEDUA ujung dan KEDUA rangka, daerah x = 0 .. 2.500 mm dimodelkan sebagai
+**box 3D dari elemen pelat**, bukan elemen balok:
 
-| kelompok pelat | tebal | jumlah | keterangan |
-|---|---|---|---|
-| blok kaki pelengkung | **60 mm** | 96 | badan 20 + PLATE BUHUL 20 di kedua sisi |
-| badan balok tarik | 20 mm | 64 | |
-| lantai beton | 250 mm | 640 | |
+| bagian | tebal | keterangan |
+|---|---|---|
+| badan box (2 bidang, y = sisi +- 200) | **20 mm** | lebar box 400 mm |
+| sayap atas & bawah | **30 mm** | |
+| **PELAT MELENGKUNG** | **30 mm** | sisi bawah kaki pelengkung |
+| badan balok tarik / lantai | 20 / 250 mm | |
 
-Sayap chord dan sayap balok tarik di daerah shell dimodelkan sebagai batang
-tepi (SB 350x30 dan SB 400x30). Di garis potong x = 2.500 penampang pelat
-diikat rigid link ke simpul balok chord dan balok tarik, supaya gaya
-tersalur merata dan bukan lewat dua simpul sudut saja.
+Jumlah: 448 pelat 20 mm + 224 pelat 30 mm + 640 pelat lantai = 1.312.
 
-### Kalibrasi ukuran plat
-Gambar DETAIL adalah vektor skala 1:30. Kalibrasi memakai lebar hanger
-A80-H16: tergambar 23,5 pt; 23,5 x 0,3528 x 30 = **248,6 mm** terhadap
-250 mm sebenarnya (WB400x250x12x20) -> 1 pt = 10,584 mm, yaitu 1:30 tepat.
+**Box balok tarik**: 1000 x 400 mm (WB1000x400x20x30), x = 0 .. 2.500.
+**Box kaki pelengkung**: sisi atas mengikuti chord ATAS (zT + 200), sisi
+bawah adalah PELAT MELENGKUNG yang berangkat MENDATAR dari sayap atas balok
+tarik (z = +500) lalu melengkung mulus sampai sejajar chord TENGAH di
+x = 2.500. Kurvanya Hermite, jadi kemiringan di tumpuan tepat nol dan di
+ujung tepat sama dengan kemiringan chord tengah (0,728).
 
-Jadi: **tebal plat TEPAT** (dari MATERIAL LIST, semua PLATE BUHUL = PL20);
-panjang dan lebar teliti sekitar **+-1%**.
+**Peralihan**: di x = 2.500 penampang box diikat rigid link ke simpul balok
+chord ATAS dan chord TENGAH; di x = 0 simpul perletakan diikat ke penampang
+ujung box sebagai diafragma, supaya reaksi tumpuan masuk ke box.
+
+### Kalibrasi ukuran
+Gambar DETAIL vektor skala 1:30. Kalibrasi memakai lebar hanger A80-H16:
+tergambar 23,5 pt; 23,5 x 0,3528 x 30 = **248,6 mm** terhadap 250 mm
+sebenarnya -> 1 pt = 10,584 mm, 1:30 tepat. **Tebal pelat TEPAT** (MATERIAL
+LIST); panjang/lebar teliti sekitar +-1%.
 
 ## BELUM termasuk
 - **Beban gempa** - lokasi jembatan belum diketahui, jadi tidak dibuat-buat.
