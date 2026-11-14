@@ -1,6 +1,7 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7B dari 8+
-; Lalu lintas - BTR, BGT, pejalan kaki, gaya rem - JALANKAN SATU KALI
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7B   (revisi 3)
+; Lalu lintas BTR BGT pejalan kaki rem - JALANKAN SEKALI
+; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
 ; ====================================================================
 
 *VERSION

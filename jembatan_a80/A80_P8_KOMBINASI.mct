@@ -1,7 +1,7 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 8 dari 8
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 8   (revisi 3)
 ; LOADCOMB - 11 kombinasi
-; Jalankan BERURUTAN P1 -> P8 lewat MCT Command Shell.
+; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
 ; ====================================================================
 
 *VERSION

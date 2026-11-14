@@ -1,7 +1,7 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 4 dari 8
-; ELEMENT - 1624 pelat PLATE
-; Jalankan BERURUTAN P1 -> P8 lewat MCT Command Shell.
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 4   (revisi 3)
+; ELEMENT - 1624 pelat
+; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
 ; ====================================================================
 
 *VERSION

@@ -1,6 +1,7 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7A dari 8+
-; Beban mati - berat sendiri, pelat, trotoar, aspal, sandaran - JALANKAN SATU KALI
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7A   (revisi 3)
+; Beban mati - JALANKAN SEKALI
+; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
 ; ====================================================================
 
 *VERSION

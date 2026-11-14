@@ -151,7 +151,10 @@ for s in SIDES:
         if xm<XT or xm>L-XT: continue           # diganti box balok tarik
         G['TIE'].append(el(1,tie[(s,i)],tie[(s,i+1)]))
     for i in range(NP):
-        se=2 if i in (0,NP-1) else 3
+        # A80-T1/M1 (WB400x500x20x30, qty 4 masing-masing) = segmen chord
+        # PERTAMA YANG MUNCUL di luar box, yaitu panel 1 dan NP-2.
+        # Panel 0 dan NP-1 seluruhnya di dalam box dan di-skip di bawah.
+        se=2 if i in (1,NP-2) else 3
         a,b2=(tch[(s,i)],tch[(s,i+1)]); c,d2=(mch[(s,i)],mch[(s,i+1)])
         xa,xb=XP[i],XP[i+1]
         if xb<=XF or xa>=L-XF: continue      # seluruh panel di dalam box
@@ -350,7 +353,14 @@ W("    1, STEEL, SM490YB           , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3,
 W("    2, STEEL, STK41             , 0, 0, , C, NO, 0.02, 2, 2.0904e+001,   0.3, 1.2000e-005, 8.00477e-009,     0")
 Ec=4700*math.sqrt(FC)
 W("; beton lantai fc' = %.0f MPa, E = %.0f MPa, 25 kN/m3"%(FC,Ec))
-W("    3, CONC , C%d               , 0, 0, , C, NO, 0.05, 2, %.4fe+001, 0.2, 1.0000e-005, 2.54929e-009,     0"%(FC,Ec/9806.65/10))
+Et=Ec/9806.65                      # tonf/mm2
+W("; PELAT ORTOTROPIK: arah memanjang (lokal-x = sumbu jembatan) dilemahkan")
+W("; jadi 8% karena pada pelengkung-bertarik balok tarik HARUS bisa memanjang.")
+W("; Arah melintang & vertikal tetap penuh supaya sebaran beban lantai benar.")
+W("; [DATA1] : 3, Ex, Ey, Ez, Tx, Ty, Tz, Sxy, Sxz, Syz, Pxy, Pxz, Pyz, DEN, MASS")
+W("    3, USER , C%d-ORTHO         , 0, 0, , C, NO, 0.05, 3, %.6e, %.6e, %.6e, "
+  "1.0000e-005, 1.0000e-005, 1.0000e-005, %.6e, %.6e, %.6e, 0.10, 0.10, 0.10, "
+  "2.54929e-009,     0"%(FC,0.08*Et,Et,Et,Et/2.4,Et/2.4,Et/2.4))
 hdr("PENAMPANG")
 W("*SECTION"); W("; iSEC, TYPE, SNAME, [OFFSET], bSD, bWE, SHAPE, [DATA]")
 for i in sorted(SEC):

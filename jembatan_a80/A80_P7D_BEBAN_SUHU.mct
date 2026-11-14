@@ -1,6 +1,7 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7D dari 8+
-; Suhu seragam naik dan turun - JALANKAN SATU KALI
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7D   (revisi 3)
+; Suhu seragam naik dan turun - JALANKAN SEKALI
+; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
 ; ====================================================================
 
 *VERSION

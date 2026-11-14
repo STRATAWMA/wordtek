@@ -1,6 +1,7 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7C dari 8+
-; Angin - struktur, kendaraan, vertikal - JALANKAN SATU KALI
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 7C   (revisi 3)
+; Angin struktur kendaraan vertikal - JALANKAN SEKALI
+; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
 ; ====================================================================
 
 *VERSION

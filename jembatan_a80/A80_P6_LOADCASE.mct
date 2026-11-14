@@ -1,6 +1,7 @@
 ; ====================================================================
-; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 6
-; STLDCASE - 13 kasus beban. DESC polos: tanpa koma = ( ) +
+; A80 JEMBATAN PELENGKUNG 80 m - BAGIAN 6   (revisi 3)
+; STLDCASE - 13 kasus beban
+; Jalankan BERURUTAN. P6/P7 hanya SEKALI.
 ; ====================================================================
 
 *VERSION
@@ -12,18 +13,18 @@
 
 *STLDCASE
 ; LCNAME, LCTYPE, DESC
-   MS     , D, Berat sendiri baja dan pelat lantai 250 mm dan trotoar 300 mm
-   MA     , D, Aspal 50 mm dan sandaran
-   TD-BTR , L, Lajur D BTR 6.1875 kPa SNI 1725 ps.8.3.1
-   TD-BGT , L, Lajur D BGT 64.925 kN/m termasuk FBD 0.325
+   MS     , D, Berat sendiri baja pelat lantai 250 mm trotoar 300 mm
+   MA     , D, Aspal 50 mm sandaran
+   TD-BTR , L, Lajur D - BTR 6.1875 kPa SNI 1725 ps.8.3.1
+   TD-BGT , L, Lajur D - BGT 49 x 1 0.325 64.925 kN/m
    TB1    , L, Gaya rem 250 kN SNI 1725 ps.8.7
    TP     , L, Pejalan kaki 5 kPa pada trotoar
    EWS    , W, Angin pada struktur PD 2.4 kPa
    EWL    , W, Angin pada kendaraan 1.46 kN/m
-   EWV    , W, Angin vertikal 0.96 kPa kali lebar
+   EWV    , W, Angin vertikal 0.96 kPa x lebar
    EUN    , T, Suhu seragam naik 15 C
-   EUN-N  , T, Suhu seragam turun 15 C
-   EQX    , E, Gempa memanjang Timor Leste SNI 2833-2016 koef 0.4500
-   EQY    , E, Gempa melintang Timor Leste SNI 2833-2016 koef 0.4500
+   EUN-N  , T, Suhu seragam turun -15 C
+   EQX    , E, Gempa memanjang Timor Leste - SNI 2833-2016 - koef 0.4500
+   EQY    , E, Gempa melintang Timor Leste - SNI 2833-2016 - koef 0.4500
 
 *ENDDATA

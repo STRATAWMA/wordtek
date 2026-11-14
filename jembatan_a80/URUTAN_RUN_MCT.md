@@ -32,21 +32,46 @@ lalu jalankan P6 dan seluruh P7 lagi dari awal.
 
 P1–P5 aman diulang (menimpa, bukan menambah).
 
-## Catatan perbaikan (revisi 2)
+## Catatan perbaikan (revisi 3)
 
-Beban dipecah per kelompok supaya kalau ada error bisa langsung ditunjuk
-kelompok mana. Dua hal diubah tanpa mengubah nilai beban:
+Dua koreksi pada model, keduanya **tidak mengubah profil** — justru membuat model
+sesuai gambar approval:
 
-- **DESC pada P6 dibuat polos** — tanpa koma, `=`, `(`, `)`, `+`. Karakter `=`
-  adalah token penugasan di MCT (`NAME=`, `CODE=`), dan koma dibaca sebagai
-  pemisah kolom.
-- **Baris panjang dipotong** — daftar simpul dibatasi 12 nomor per baris.
-  Sebelumnya ada baris 1.328 karakter; sekarang terpanjang 164 karakter.
+### 1. Segmen chord ujung salah penampang
 
-Verifikasi: total beban dan jumlah simpul per kasus beban **identik** dengan
-file induk (14 kombinasi load case x blok dibandingkan satu per satu).
+MATERIAL LIST gambar GA-ITK09-10 menyebut:
 
-## Satuan
+| Mark | Nama | Qty | Dimensi |
+|---|---|---|---|
+| A80-T1 | TOP CHORD | 4 | **WB400*500*20*30** |
+| A80-T2..T7 | TOP CHORD | 4 ea | WB400*350*20*30 |
+| A80-M1 | MIDDLE CHORD | 4 | **WB400*500*20*30** |
+| A80-M2..M7 | MIDDLE CHORD | 4 ea | WB400*350*20*30 |
 
-P1–P5 memakai `TONF, MM`. P6–P8 memakai `KN, M`. Tiap file sudah membawa blok
-`*UNIT` sendiri, jadi tidak ada yang perlu diatur manual di GUI.
+Delapan segmen chord di ujung pelengkung memakai 400x500, dan model lama memberi
+semuanya 400x350. Penampang ARCH-END sudah ada di daftar tetapi tidak pernah
+terpasang karena salah indeks panel. Sekarang terpasang di elemen 61, 62, 87, 88,
+189, 190, 215, 216 — tepat 4 top chord + 4 middle chord.
+
+### 2. Pelat lantai dibuat ortotropik
+
+Ini jembatan **pelengkung bertarik**: balok tarik memang harus bisa memanjang untuk
+menahan gaya dorong pelengkung. Pada model lama pelat lantai diikat kaku ke balok
+tarik (130 rigid link DOF 111111, lengan 381 mm, tiap 1,25 m sepanjang 80 m) dengan
+kekakuan beton penuh ke segala arah. Pelat jadi melawan pemanjangan balok tarik dan
+menyuntikkan kopel momen ke dalamnya.
+
+Pelat sekarang ortotropik: arah memanjang 8% (retak), arah melintang dan vertikal
+tetap penuh sehingga sebaran beban lantai tidak berubah. Cara yang sama sudah
+terbukti jalan di B100.
+
+### Batas yang perlu diketahui
+
+Dua perbaikan ini tidak menyelesaikan elemen 1091 (PIPE6, COM 1.612). Batang itu
+dikuasai kombinasi gempa EKSTREM I-EQY, dan beban gempanya memakai **asumsi
+periode T = 1,20 detik** yang belum pernah diverifikasi. Gaya gempa berbanding
+terbalik dengan T, jadi angkanya bisa berubah besar. Jalankan eigenvalue analysis
+untuk mendapat T yang sebenarnya.
+
+Pipa bracing TIDAK boleh diubah jadi TRUSS: 43 titik silang X-bracing akan jadi
+mekanisme karena keempat batang di titik itu sebidang.
