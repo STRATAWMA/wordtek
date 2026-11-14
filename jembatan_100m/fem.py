@@ -18,7 +18,7 @@ SRC_STR = 'B100_1_STRUKTUR.mct'
 SRC_LOD = 'B100_2_BEBAN.mct'
 import os
 CRACK   = float(os.environ.get('CRACK','1.0'))   # 1.0 = beton utuh, 0.08 = retak
-OUT     = 'B100_FEM_KOMPOSIT_RETAK.mct' if CRACK<1 else 'B100_FEM_KOMPOSIT.mct'
+OUT     = ('B100_FEM_KOMPOSIT_RETAK' if CRACK<1 else 'B100_FEM_KOMPOSIT')+('_V2' if os.environ.get('LINKV2','0')=='1' else '')+'.mct'
 NDIV    = 4                 # pembagian tiap panel
 TSLAB   = 262.0             # mm
 ZOFF    = 381.0             # mm, sumbu balok -> bidang tengah pelat (250+131)
@@ -141,7 +141,15 @@ for i in range(len(XS)-1):
         n=[slab[(XS[i],YL[j])],slab[(XS[i+1],YL[j])],
            slab[(XS[i+1],YL[j+1])],slab[(XS[i],YL[j+1])]]
         plates.append((pid,n))
-rlinks=[(nodeat[k],slab[k]) for k in slab]        # (master balok, slave pelat)
+rlinks=[(nodeat[k],slab[k],k[1]) for k in slab]   # (master balok, slave pelat, y)
+# Mode sambungan pelat-balok pada GARIS CHORD (y=0 dan y=7600):
+#   V1 = 111111 : 6 DOF penuh, momen lentur pelat ikut masuk ke chord
+#   V2 = 111001 : gaya tetap tersalur penuh (Dx,Dy,Dz) dan DOF drilling Rz
+#                 tetap diikat supaya tidak singular, tetapi Rx dan Ry
+#                 DILEPAS -> pelat tidak lagi menjepit chord. Garis stringer
+#                 tetap 111111 karena di situ ada shear connector.
+LINK_V2 = os.environ.get('LINKV2','0')=='1'
+DOF_CHORD = '111001' if LINK_V2 else '111111'
 
 # ---------------- tributari tiap simpul pelat (untuk beban simpul) --------
 def trib_x(i):
@@ -231,12 +239,15 @@ for b in B_STR:
         A("*RIGIDLINK")
         A("; iNO, MASTER_NODE, DOF, S_NODE_LIST, GROUP")
         A("; SAMBUNGAN KOMPOSIT: tiap simpul balok lantai (master) mengikat satu")
+        A("; Garis stringer y=500..7100 : %s (komposit penuh, ada shear connector)"%'111111')
+        A("; Garis chord  y=0 dan 7600 : %s"%DOF_CHORD)
         A("; simpul pelat di atasnya (slave) dengan 6 DOF. Lengan %.0f mm itulah"%ZOFF)
         A("; yang memberi aksi komposit penuh antara pelat beton dan baja.")
         A("; Diafragma lantai yang lama (DOF Dx ke chord bawah) sudah tidak ada -")
         A("; pelat beton sendiri yang kini jadi diafragma.")
-        for i,(m,sl) in enumerate(sorted(rlinks),1):
-            A("   %d, %d, 111111, %d, "%(i,m,sl))
+        for i,(m,sl,y) in enumerate(sorted(rlinks),1):
+            dof = DOF_CHORD if y in (YL[0],YL[-1]) else '111111'
+            A("   %d, %d, %s, %d, "%(i,m,dof,sl))
         continue
     if nm=='NODE':
         A(b[1]); L.extend(b[2])
