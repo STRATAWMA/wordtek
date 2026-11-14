@@ -11,6 +11,9 @@ File model: `A80_PELENGKUNG_FEM.mct` - run ke model KOSONG, satuan kN, m.
 | Elemen PLATE (lantai beton) | 640 (64 x 10) |
 | Rigid link komposit | 715, DOF 111111, lengan 381 mm |
 
+Ikatan angin silang DISAMBUNG di titik perpotongan, sesuai DET-21 pada
+SECTION A. Tanpa itu diagonal menjadi 11,66 m menerus dan KL/r = 208.
+
 Bentang 80.000 mm, 16 panel x 5.000, lebar as-ke-as 10.000 mm,
 puncak pelengkung 19.095 mm di atas balok tarik.
 
@@ -56,7 +59,11 @@ pipa STK41 (fy 235), lantai beton fc' 30 MPa.
 1. **Tebal pelat lantai 250 mm** - tidak tercantum di gambar yang dikirim.
 2. **Lebar jalan 7,0 m + trotoar 2 x 1,5 m** - pembagian melintang tidak
    tercantum; yang ada hanya 10.000 antar rangka dan 9 stringer @ 1100.
-3. Pipa 6" diambil 165,2 x 7,1 mm.
+3. **Pipa 6" diambil 165,2 x 7,1 mm (STK41)** - ini perlu dipastikan.
+   30 batang ikatan angin melintang sepanjang 10 m (antar rangka pelengkung,
+   bidang chord ATAS dan chord TENGAH) memberi KL/r = 179, melewati batas
+   AASHTO 6.9.3 untuk batang bracing (140). Kalau pipanya sebenarnya 8"
+   (216,3 x 8,2) maka KL/r = 136 dan lolos.
 4. Perletakan: 4 titik, 111000 / 101000 / 011000 / 001000.
 
 ## BELUM termasuk

@@ -12,10 +12,11 @@ WROAD=7000.0; WTROT=1500.0                    # ASUMSI - lihat catatan
 Y0R=(B-WROAD)/2; Y1R=Y0R+WROAD                # 1500 .. 8500
 
 N={}; ORD=[]; _n=[0]
+CO={}
 def nd(x,y,z):
     k=(round(x,1),round(y,1),round(z,1))
     if k not in N:
-        _n[0]+=1; N[k]=_n[0]; ORD.append((_n[0],k))
+        _n[0]+=1; N[k]=_n[0]; ORD.append((_n[0],k)); CO[_n[0]]=k
     return N[k]
 E=[]; _e=[0]
 def el(sec,n1,n2,mat=1):
@@ -64,14 +65,21 @@ for i in range(len(XD)):
     for a,b2 in zip(p[:-1],p[1:]): G['CROSSGIRDER'].append(el(6,a,b2))
 for y in YS:
     for i in range(len(XD)-1): G['STRINGER'].append(el(7,st[(y,i)],st[(y,i+1)]))
-for dic,nm in ((tch,'HB-TOP'),(mch,'HB-MID')):
+# Ikatan angin silang DISAMBUNG DI TITIK SILANGAN (lihat DET-21 pada
+# SECTION A). Tanpa sambungan itu diagonal jadi 11,66 m menerus dan
+# KL/r = 208 > 120, batas AASHTO 6.9.3 - batang langsing semu.
+def xbrace(a1,a2,b1,b2,nm):
+    """dua diagonal silang a1-a2 dan b1-b2, disambung di perpotongan"""
+    ca,cb=CO[a1],CO[a2]
+    mid=nd((ca[0]+cb[0])/2,(ca[1]+cb[1])/2,(ca[2]+cb[2])/2)
+    for u in (a1,a2,b1,b2): G[nm].append(el(8,u,mid,2))
+    return mid
+for dic,nm,zf in ((tch,'HB-TOP',zT),(mch,'HB-MID',zM)):
     for i in range(1,NP): G[nm].append(el(8,dic[(0.0,i)],dic[(B,i)],2))
     for i in range(1,NP-1):
-        G[nm].append(el(8,dic[(0.0,i)],dic[(B,i+1)],2))
-        G[nm].append(el(8,dic[(B,i)],dic[(0.0,i+1)],2))
+        xbrace(dic[(0.0,i)],dic[(B,i+1)],dic[(B,i)],dic[(0.0,i+1)],nm)
 for i in range(1,NP):
-    G['VB-FRAME'].append(el(8,tch[(0.0,i)],mch[(B,i)],2))
-    G['VB-FRAME'].append(el(8,tch[(B,i)],mch[(0.0,i)],2))
+    xbrace(tch[(0.0,i)],mch[(B,i)],tch[(B,i)],mch[(0.0,i)],'VB-FRAME')
 for i in (0,len(XD)-1): G['LAT-STOP'].append(el(9,tie[(0.0,i)],tie[(B,i)]))
 for i in range(len(XD)-1):
     for j in range(len(YALL)-1):
