@@ -22,8 +22,9 @@ E=[]; _e=[0]
 def el(sec,n1,n2,mat=1):
     _e[0]+=1; E.append((_e[0],mat,sec,n1,n2)); return _e[0]
 PLA=[]; _p=[4999]
-def plt(a,b,c,d):
-    _p[0]+=1; PLA.append((_p[0],a,b,c,d)); return _p[0]
+THK={250.0:1, 60.0:2, 20.0:3, 12.0:4}        # tebal -> nomor *THICKNESS
+def plt(a,b,c,d,t=250.0,mat=3):
+    _p[0]+=1; PLA.append((_p[0],a,b,c,d,THK[t],mat)); return _p[0]
 G=collections.defaultdict(list)
 SIDES=[0.0,B]; YALL=[0.0]+YS+[B]
 
@@ -47,12 +48,61 @@ for i,x in enumerate(XD):
     for y in YALL: slab[(i,y)]=nd(x,y,ZOFF)
 
 # --------- batang ---------
+# ====================== KAKI PELENGKUNG - MODEL SHELL ======================
+# Daerah x = 0 .. XF di kedua ujung dimodelkan sebagai PELAT, bukan balok:
+# di situ chord ATAS dan chord TENGAH menyatu jadi blok berpelat (DETAIL 3/4
+# lembar GA-ITK09-04) dan di situlah perletakan berada.
+# Tebal: badan 20 mm + PLATE BUHUL 20 mm di KEDUA sisi = 60 mm.
+# Tebal dari MATERIAL LIST (semua PLATE BUHUL = PL20) jadi TEPAT; panjang
+# dan lebar diukur dari gambar vektor 1:30, teliti sekitar +-1%.
+XF=2500.0; NXF=4; NZF=6
+TIE_TOP=470.0
+foot_edge={}
+for sd in SIDES:
+    for sign,x0 in ((+1,0.0),(-1,L)):
+        xs=[x0+sign*XF*k/NXF for k in range(NXF+1)]
+        gr={}
+        for i,x in enumerate(xs):
+            lo,hi=zM(x),zT(x)
+            rows=[lo] if hi-lo<1 else [lo+(hi-lo)*k/NZF for k in range(NZF+1)]
+            for k,z in enumerate(rows): gr[(i,k)]=nd(x,sd,z)
+            gr[('n',i)]=len(rows)
+        for i in range(NXF):
+            na,nb=gr[('n',i)],gr[('n',i+1)]
+            if na==1:
+                for k in range(nb-1): plt(gr[(i,0)],gr[(i+1,k)],gr[(i+1,k+1)],gr[(i,0)],60.0,1)
+            else:
+                for k in range(NZF): plt(gr[(i,k)],gr[(i+1,k)],gr[(i+1,k+1)],gr[(i,k+1)],60.0,1)
+        # badan balok tarik sebagai pelat pada daerah yang sama
+        zt=[-TIE_TOP+2*TIE_TOP*k/4 for k in range(5)]
+        tgd={}
+        for i,x in enumerate(xs):
+            for k,z in enumerate(zt): tgd[(i,k)]=nd(x,sd,z)
+        for i in range(NXF):
+            for k in range(4): plt(tgd[(i,k)],tgd[(i+1,k)],tgd[(i+1,k+1)],tgd[(i,k+1)],20.0,1)
+        for i in range(NXF):
+            G['FLANGE-TIE'].append(el(11,tgd[(i,0)],tgd[(i+1,0)]))
+            G['FLANGE-TIE'].append(el(11,tgd[(i,4)],tgd[(i+1,4)]))
+            if gr[('n',i)]>1:
+                G['FLANGE-CH'].append(el(10,gr[(i,NZF)],gr[(i+1,NZF)]))
+                G['FLANGE-CH'].append(el(10,gr[(i,0)],gr[(i+1,0)]))
+        foot_edge[(sd,sign)]=([gr[(NXF,k)] for k in range(NZF+1)],
+                              [tgd[(NXF,k)] for k in range(5)], x0+sign*XF)
+# =========================================================================
 for s in SIDES:
-    for i in range(len(XD)-1): G['TIE'].append(el(1,tie[(s,i)],tie[(s,i+1)]))
+    for i in range(len(XD)-1):
+        xm=(XD[i]+XD[i+1])/2
+        if xm<XF or xm>L-XF: continue           # diganti pelat
+        G['TIE'].append(el(1,tie[(s,i)],tie[(s,i+1)]))
     for i in range(NP):
         se=2 if i in (0,NP-1) else 3
-        G['T-CHORD'].append(el(se,tch[(s,i)],tch[(s,i+1)]))
-        G['M-CHORD'].append(el(se,mch[(s,i)],mch[(s,i+1)]))
+        a,b2=(tch[(s,i)],tch[(s,i+1)]); c,d2=(mch[(s,i)],mch[(s,i+1)])
+        if i in (0,NP-1):        # panel ujung: mulai dari batas pelat
+            xx=XF if i==0 else L-XF
+            a2=nd(xx,s,zT(xx)); c2=nd(xx,s,zM(xx))
+            if i==0: a,c=a2,c2
+            else:    b2,d2=a2,c2
+        G['T-CHORD'].append(el(se,a,b2)); G['M-CHORD'].append(el(se,c,d2))
     for i in range(1,NP):
         G['ARCH-VERT'].append(el(5,tch[(s,i)],mch[(s,i)]))
         G['HANGER'].append(el(4,mch[(s,i)],tie[(s,i*NDIV)]))
@@ -85,13 +135,22 @@ for i in range(len(XD)-1):
     for j in range(len(YALL)-1):
         plt(slab[(i,YALL[j])],slab[(i+1,YALL[j])],slab[(i+1,YALL[j+1])],slab[(i,YALL[j+1])])
 RL=[(deck[(i,y)],slab[(i,y)]) for i in range(len(XD)) for y in YALL]
+# --- peralihan PELAT -> BALOK di batas kaki pelengkung (x = XF) ---
+# Penampang pelat di garis potong diikat ke simpul balok chord/balok tarik
+# supaya gaya tersalur merata, bukan lewat dua simpul sudut saja.
+for (sd,sign),(wedge,tieedge,xx) in foot_edge.items():
+    mT=wedge[-1]                       # simpul balok chord ATAS
+    for n in wedge[1:-1]: RL.append((mT,n))
+    mB=tieedge[2]                      # simpul balok tarik (z=0)
+    for n in tieedge[:2]+tieedge[3:]: RL.append((mB,n))
 
 # --------- penampang ---------
 SEC={1:("B-TIE","H",(1000,400,20,30)),2:("ARCH-END","H",(400,500,20,30)),
      3:("ARCH","H",(400,350,20,30)),4:("HANGER","H",(400,250,12,20)),
      5:("ARCH-WEB","H",(400,200,12,20)),6:("CROSSGIRDER","H",(550,400,20,30)),
      7:("STRINGER","H",(450,220,8,12)),8:("PIPE6","P",(165.2,7.1)),
-     9:("LAT-STOP","H",(850,400,10,20))}
+     9:("LAT-STOP","H",(850,400,10,20)),
+     10:("FLANGE-CH","SB",(350,30)), 11:("FLANGE-TIE","SB",(400,30))}
 
 # --------- beban (SNI 1725-2016, Kelas A, L=80 m) ---------
 qBTR = 9.0*(0.5+15.0/(L/1000.0))
@@ -161,7 +220,7 @@ W("*ELEMENT")
 W("; iEL, TYPE, iMAT, iPRO, iN1, iN2, ANGLE, iSUB")
 for i,m,s,a,b2 in E: W("   %d, BEAM  , %d, %d, %d, %d, 0, 0"%(i,m,s,a,b2))
 W("; iEL, TYPE, iMAT, iPRO, iN1, iN2, iN3, iN4, iSUB(1=Thick), iWID, LCAXIS")
-for p,a,b2,c,d in PLA: W("   %d, PLATE , 3, 1, %d, %d, %d, %d, 1, 0, 0"%(p,a,b2,c,d))
+for p,a,b2,c,d,th,mt in PLA: W("   %d, PLATE , %d, %d, %d, %d, %d, %d, 1, 0, 0"%(p,mt,th,a,b2,c,d))
 hdr("MATERIAL")
 W("*MATERIAL")
 W("; iMAT, TYPE, MNAME, SPHEAT, HEATCO, PLAST, TUNIT, bMASS, DAMPRATIO, [DATA1]")
@@ -174,10 +233,11 @@ hdr("PENAMPANG")
 W("*SECTION"); W("; iSEC, TYPE, SNAME, [OFFSET], bSD, bWE, SHAPE, [DATA]")
 for i in sorted(SEC):
     nm,sh,d=SEC[i]
-    p=("%g, %g, 0, 0, 0, 0, 0, 0, 0, 0"%d) if sh=='P' else ("%g, %g, %g, %g, 0, 0, 0, 0, 0, 0"%d)
+    p=("%g, %g, 0, 0, 0, 0, 0, 0, 0, 0"%d) if sh in ('P','SB') else ("%g, %g, %g, %g, 0, 0, 0, 0, 0, 0"%d)
     W("   %d, DBUSER    , %-18s, CC, 0, 0, 0, 0, 0, 0, YES, NO, %s  , 2, %s"%(i,nm,sh,p))
 W(""); W("*THICKNESS"); W("; iTHK, TYPE, bSAME, THIK-IN, THIK-OUT, bOFFSET, OFFTYPE, VALUE")
-W("    1, VALUE, YES, %.0f, 0,  NO, 0, 0"%TSLAB)
+for t,i in sorted(THK.items(), key=lambda z:z[1]):
+    W("    %d, VALUE, YES, %.0f, 0,  NO, 0, 0"%(i,t))
 hdr("MUTU BAJA - SM490YB: fy 365 MPa (t<=16), 355 MPa (t>16), fu 490 MPa")
 K=9.80665e3; tail=("2, 0, , , , 0, 0,NO,0.0000e+000,     0,"+", 0, 0,0"*5)
 W("*DGN-MATL")

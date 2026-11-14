@@ -18,8 +18,14 @@ _DP = {40000: 3990, 35000: 3995, 30000: 3915, 25000: 3750,
        20000: 3475, 15000: 3060, 10000: 2455,  5000: 1605, 0:0.0}
 
 def _sym(d,x):
+    """interpolasi linear antar titik buhul, simetris terhadap tengah bentang"""
     xx = x if x<=L/2 else L-x
-    return float(d[int(round(xx))])
+    ks = sorted(d)
+    if xx<=ks[0]: return float(d[ks[0]])
+    if xx>=ks[-1]: return float(d[ks[-1]])
+    for a,b in zip(ks[:-1],ks[1:]):
+        if a<=xx<=b:
+            t=(xx-a)/(b-a); return float(d[a]+(d[b]-d[a])*t)
 def zT(x): return _sym(_TH,x)                 # chord atas
 def zM(x): return _sym(_TH,x)-_sym(_DP,x)     # chord tengah
 def dep(x): return _sym(_DP,x)
