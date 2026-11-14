@@ -24,6 +24,10 @@ def el(sec,n1,n2,mat=1):
 PLA=[]; _p=[4999]
 THK={250.0:1, 60.0:2, 20.0:3, 12.0:4}        # tebal -> nomor *THICKNESS
 def plt(a,b,c,d,t=250.0,mat=3):
+    # pelat SEGITIGA ditulis dengan simpul ke-4 = 0, bukan simpul ke-1
+    # diulang (midas menolak simpul kembar pada field 1 dan 4).
+    if d==a or d==c: d=0
+    if c==b: c=d; d=0
     _p[0]+=1; PLA.append((_p[0],a,b,c,d,THK[t],mat)); return _p[0]
 G=collections.defaultdict(list)
 SIDES=[0.0,B]; YALL=[0.0]+YS+[B]
